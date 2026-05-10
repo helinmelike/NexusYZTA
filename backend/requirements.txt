@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic-settings
+anthropic
+langchain-google-genai
+langgraph
+langchain-core
+python-dotenv
+openpyxl

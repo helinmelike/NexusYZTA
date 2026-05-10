@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kooperatif Yönetim Paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F7F6F2;--surface:#FFFFFF;--border:#E8E6E0;--border-strong:#D0CEC8;
+  --text:#1A1916;--text-2:#6B6960;--text-3:#9E9B94;
+  --accent:#2D6A4F;--accent-light:#E8F5EE;--accent-text:#1B4332;
+  --warn:#B45309;--warn-light:#FEF3C7;--danger:#DC2626;--danger-light:#FEE2E2;
+  --info:#1D4ED8;--info-light:#DBEAFE;--radius:10px;--radius-lg:14px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+#sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo h1{font-size:15px;font-weight:600;color:var(--accent)}
+.sidebar-logo p{font-size:11px;color:var(--text-3);margin-top:2px}
+.sidebar-nav{padding:12px 10px;flex:1}
+.nav-section{font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding:4px 8px;margin:8px 0 4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--text-2);transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--accent-light);color:var(--accent-text);font-weight:500}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{padding:14px;border-top:1px solid var(--border)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#22C55E;display:inline-block;margin-right:6px}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.topbar-title{font-size:15px;font-weight:500}
+.btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-family:inherit;transition:all .15s}
+.btn:hover{background:var(--bg)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:#235c44}
+.btn-sm{padding:4px 10px;font-size:12px}
+.page{display:none;flex:1;overflow-y:auto;padding:24px}
+.page.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.card-sm{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.stat-label{font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:500;line-height:1}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text-2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:var(--accent-light);color:var(--accent-text)}
+.badge-yellow{background:var(--warn-light);color:var(--warn)}
+.badge-red{background:var(--danger-light);color:var(--danger)}
+.badge-blue{background:var(--info-light);color:var(--info)}
+.badge-gray{background:var(--bg);color:var(--text-3)}
+#chat-messages{height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 0 12px}
+.msg{display:flex;gap:9px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:600}
+.msg-avatar.bot{background:var(--accent-light);color:var(--accent)}
+.msg-avatar.user{background:var(--info-light);color:var(--info)}
+.msg-bubble{padding:9px 13px;border-radius:12px;font-size:13.5px;line-height:1.6;max-width:78%;white-space:pre-wrap;color:var(--text)}
+.msg-bubble.bot{background:var(--bg);border-radius:0 12px 12px 12px}
+.msg-bubble.user{background:var(--info-light);border-radius:12px 0 12px 12px;color:var(--info)}
+.chat-input-row{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.chat-input-row textarea{flex:1;resize:none;font-family:inherit;font-size:13.5px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);outline:none}
+.chat-input-row textarea:focus{border-color:var(--accent)}
+.quick-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.quick-btn{padding:5px 11px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);cursor:pointer;font-family:inherit}
+.quick-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent-text)}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:5px;display:block}
+.form-input{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;color:var(--text);background:var(--surface);outline:none}
+.form-input:focus{border-color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.loading{display:inline-flex;gap:4px;align-items:center}
+.loading span{width:5px;height:5px;border-radius:50%;background:var(--text-3);animation:bounce .8s infinite}
+.loading span:nth-child(2){animation-delay:.15s}
+.loading span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6)}40%{transform:scale(1)}}
+.section-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.alert-success{background:var(--accent-light);color:var(--accent-text)}
+.alert-warn{background:var(--warn-light);color:var(--warn)}
+.alert-danger{background:var(--danger-light);color:var(--danger)}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="sidebar-logo">
+    <h1>🌿 Kooperatif</h1>
+    <p>Yönetim Paneli</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Ana Menü</div>
+    <button class="nav-item active" onclick="showPage('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI Asistan
+    </button>
+    <button class="nav-item" onclick="showPage('products')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Ürünler & Stok
+    </button>
+    <button class="nav-item" onclick="showPage('orders')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Siparişler
+    </button>
+    <button class="nav-item" onclick="showPage('customers')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Müşteriler
+    </button>
+    <button class="nav-item" onclick="showPage('cargo')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Kargo Takip
+    </button>
+    <button class="nav-item" onclick="showPage('reports')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Raporlar
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <span class="status-dot"></span>
+    <span style="font-size:12px;color:var(--text-3)">Backend bağlı</span>
+  </div>
+</div>
+
+<div id="main">
+  <div class="topbar">
+    <span class="topbar-title" id="page-title">AI Asistan</span>
+    <button class="btn" onclick="refreshPage()">↻ Yenile</button>
+  </div>
+
+  <!-- CHAT -->
+  <div class="page active" id="page-chat">
+    <div style="max-width:800px">
+      <div class="card">
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="quickSend('ürünleri listele')">📦 Ürünleri listele</button>
+          <button class="quick-btn" onclick="quickSend('son siparişleri göster')">🛒 Son siparişler</button>
+          <button class="quick-btn" onclick="quickSend('stoku az olan ürünler var mı')">⚠️ Kritik stok</button>
+          <button class="quick-btn" onclick="quickSend('sipariş 1in detayını göster')">🔍 Sipariş detayı</button>
+          <button class="quick-btn" onclick="quickSend('siparişleri excele aktar')">📊 Excel export</button>
+          <button class="quick-btn" onclick="quickSend('müşteri 05320000001i bul')">👤 Müşteri ara</button>
+        </div>
+        <div id="chat-messages">
+          <div class="msg">
+            <div class="msg-avatar bot">🌿</div>
+            <div class="msg-bubble bot">Merhaba! Ben kooperatif asistanınım. Stok kontrolü, sipariş yönetimi, kargo takibi ve Excel export konularında yardımcı olabilirim. Ne yapmak istersiniz?</div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <textarea id="chat-input" rows="2" placeholder="Mesajınızı yazın... (Enter gönderin, Shift+Enter satır atlar)" onkeydown="chatKey(event)"></textarea>
+          <button class="btn btn-primary" onclick="sendChat()" id="chat-send-btn">Gönder</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="page" id="page-products">
+    <div class="grid-4">
+      <div class="card-sm"><div class="stat-label">Toplam Ürün</div><div class="stat-value" id="stat-total-products">—</div></div>
+      <div class="card-sm"><div class="stat-label">Kritik Stok</div><div class="stat-value" style="color:var(--danger)" id="stat-low-stock">—</div></div>
+      <div class="card-sm"><div class="stat-label">Toplam Stok</div><div class="stat-value" id="stat-total-stock">—</div></div>
+      <div class="card-sm"><div class="stat-label">Ort. Fiyat</div><div class="stat-value" id="stat-avg-price">—</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="section-title" style="margin:0">Ürün Listesi</div>
+        <button class="btn btn-primary" onclick="quickSend('stok güncelle');showPage('chat')">+ AI ile Güncelle</button>
+      </div>
+      <table id="products-table">
+        <thead><tr><th>ID</th><th>Ürün Adı</th><th>Fiyat</th><th>Stok</th><th>Durum</th></tr></thead>
+        <tbody><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:24px">Yükleniyor...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="page" id="page-orders">
+    <div class="grid-4">
+      <div class="card-sm"><div class="stat-label">Toplam Sipariş</div><div class="stat-value" id="stat-total-orders">—</div></div>
+      <div class="card-sm"><div class="stat-label">Bekleyen</div><div class="stat-value" style="color:var(--warn)" id="stat-pending">—</div></div>
+      <div class="card-sm"><div class="stat-label">Kargoda</div><div class="stat-value" style="color:var(--info)" id="stat-shipped">—</div></div>
+      <div class="card-sm"><div class="stat-label">Toplam Ciro</div><div class="stat-value" id="stat-revenue">—</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="section-title" style="margin:0">Siparişler</div>
+        <button class="btn btn-primary" onclick="quickSend('yeni sipariş oluştur');showPage('chat')">+ AI ile Ekle</button>
+      </div>
+      <table id="orders-table">
+        <thead><tr><th>Sipariş #</th><th>Müşteri</th><th>Durum</th><th>Toplam</th><th>İşlem</th></tr></thead>
+        <tbody><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:24px">Yükleniyor...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div class="page" id="page-customers">
+    <div class="card" style="margin-bottom:16px">
+      <div class="section-title">Müşteri Ara</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Telefon Numarası</label>
+          <input class="form-input" id="customer-phone-input" placeholder="05XXXXXXXXX" />
+        </div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:14px">
+          <button class="btn btn-primary" onclick="searchCustomer()">Ara</button>
+        </div>
+      </div>
+      <div id="customer-result"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="section-title">Tüm Müşteriler</div>
+      <table id="customers-table">
+        <thead><tr><th>ID</th><th>Ad Soyad</th><th>Telefon</th><th>Adres</th><th>İşlem</th></tr></thead>
+        <tbody><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:24px">Yükleniyor...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="section-title">Yeni Müşteri Ekle</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Ad Soyad</label><input class="form-input" id="new-name" placeholder="Ad Soyad"/></div>
+        <div class="form-group"><label class="form-label">Telefon</label><input class="form-input" id="new-phone" placeholder="05XXXXXXXXX"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Adres</label><input class="form-input" id="new-address" placeholder="İl, ilçe..."/></div>
+      <button class="btn btn-primary" onclick="addCustomer()">Ekle</button>
+      <div id="add-customer-result" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- CARGO -->
+  <div class="page" id="page-cargo">
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title">Kargo Sorgula</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input class="form-input" id="tracking-input" placeholder="ORD-000001" style="flex:1"/>
+          <button class="btn btn-primary" onclick="trackCargo()">Sorgula</button>
+        </div>
+        <div id="cargo-result"></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Durum Güncelle</div>
+        <div class="form-group"><label class="form-label">Sipariş ID</label><input class="form-input" id="cargo-order-id" type="number" placeholder="1"/></div>
+        <div class="form-group">
+          <label class="form-label">Yeni Durum</label>
+          <select class="form-input" id="cargo-new-status">
+            <option value="pending">Bekliyor</option>
+            <option value="preparing">Hazırlanıyor</option>
+            <option value="shipped">Kargoda</option>
+            <option value="delivered">Teslim Edildi</option>
+            <option value="cancelled">İptal</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="updateCargoStatus()">Güncelle</button>
+        <div id="cargo-update-result" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="page" id="page-reports">
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title">Excel Export</div>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Verileri Excel formatında indirin.</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn" style="text-align:left" onclick="exportExcel('products')">📦 Ürün Listesi → Excel</button>
+          <button class="btn" style="text-align:left" onclick="exportExcel('orders')">🛒 Sipariş Listesi → Excel</button>
+          <button class="btn" style="text-align:left" onclick="exportExcel('customers')">👥 Müşteri Listesi → Excel</button>
+          <button class="btn" style="text-align:left" onclick="exportExcel('inventory')">📊 Envanter Hareketleri → Excel</button>
+        </div>
+        <div id="export-result" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <div class="section-title">AI Rapor</div>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Doğal dille rapor isteyin.</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="quick-btn" style="text-align:left;border-radius:8px;padding:10px 12px" onclick="reportChat('toplam ciro ne kadar')">💰 Toplam ciro</button>
+          <button class="quick-btn" style="text-align:left;border-radius:8px;padding:10px 12px" onclick="reportChat('hangi müşteri en fazla sipariş vermiş')">🏆 En aktif müşteri</button>
+          <button class="quick-btn" style="text-align:left;border-radius:8px;padding:10px 12px" onclick="reportChat('stoku kritik seviyenin altında olan ürünler')">⚠️ Kritik stok raporu</button>
+          <button class="quick-btn" style="text-align:left;border-radius:8px;padding:10px 12px" onclick="reportChat('bekleyen siparişleri listele')">🛒 Bekleyen siparişler</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const titles = {chat:'AI Asistan',products:'Ürünler & Stok',orders:'Siparişler',customers:'Müşteriler',cargo:'Kargo Takip',reports:'Raporlar'};
+  document.getElementById('page-title').textContent = titles[name]||name;
+  const navMap = {chat:0,products:1,orders:2,customers:3,cargo:4,reports:5};
+  document.querySelectorAll('.nav-item')[navMap[name]]?.classList.add('active');
+  if(name==='products') loadProducts();
+  if(name==='orders') loadOrders();
+  if(name==='customers') loadCustomers();
+}
+
+function refreshPage() {
+  const id = document.querySelector('.page.active')?.id;
+  if(id==='page-products') loadProducts();
+  if(id==='page-orders') loadOrders();
+  if(id==='page-customers') loadCustomers();
+}
+
+// CHAT
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  addMsg('user', text);
+  const tid = addTyping();
+  document.getElementById('chat-send-btn').disabled = true;
+  try {
+    const res = await fetch(API+'/agent/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+    const data = await res.json();
+    removeTyping(tid);
+    addMsg('bot', data.reply||'Bir hata oluştu.');
+  } catch(e) {
+    removeTyping(tid);
+    addMsg('bot','Backend bağlantısı kurulamadı. Uvicorn çalışıyor mu?');
+  }
+  document.getElementById('chat-send-btn').disabled = false;
+}
+
+function addMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className='msg'+(role==='user'?' user':'');
+  const av = document.createElement('div');
+  av.className='msg-avatar '+(role==='user'?'user':'bot');
+  av.textContent = role==='user'?'S':'🌿';
+  const bubble = document.createElement('div');
+  bubble.className='msg-bubble '+(role==='user'?'user':'bot');
+  bubble.textContent=text;
+  div.appendChild(av); div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  const id='typing-'+Date.now();
+  div.id=id; div.className='msg';
+  div.innerHTML='<div class="msg-avatar bot">🌿</div><div class="msg-bubble bot"><div class="loading"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+  return id;
+}
+function removeTyping(id){const el=document.getElementById(id);if(el)el.remove();}
+function quickSend(text){document.getElementById('chat-input').value=text;sendChat();}
+function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+
+// PRODUCTS - gerçek API
+async function loadProducts() {
+  try {
+    const res = await fetch(API+'/products/');
+    const data = await res.json();
+    if(!data.success) return;
+    const products = data.data;
+    document.getElementById('stat-total-products').textContent = products.length;
+    const low = products.filter(p=>p.stock_quantity<=20).length;
+    document.getElementById('stat-low-stock').textContent = low;
+    document.getElementById('stat-total-stock').textContent = products.reduce((s,p)=>s+p.stock_quantity,0);
+    const avg = Math.round(products.reduce((s,p)=>s+p.price,0)/products.length);
+    document.getElementById('stat-avg-price').textContent = avg+'₺';
+    const tbody = document.querySelector('#products-table tbody');
+    tbody.innerHTML = products.map(p=>{
+      const status = p.stock_quantity<=20
+        ? '<span class="badge badge-red">Kritik</span>'
+        : p.stock_quantity<=50
+        ? '<span class="badge badge-yellow">Az</span>'
+        : '<span class="badge badge-green">Yeterli</span>';
+      return `<tr>
+        <td style="color:var(--text-3);font-family:'DM Mono',monospace">#${p.id}</td>
+        <td style="font-weight:500;color:var(--text)">${p.name}</td>
+        <td>${p.price.toFixed(2)}₺</td>
+        <td>${p.stock_quantity} adet</td>
+        <td>${status}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    document.querySelector('#products-table tbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:16px">API bağlantısı kurulamadı</td></tr>';
+  }
+}
+
+// ORDERS - gerçek API
+async function loadOrders() {
+  try {
+    const res = await fetch(API+'/orders/');
+    const data = await res.json();
+    if(!data.success) return;
+    const orders = data.data;
+    document.getElementById('stat-total-orders').textContent = orders.length;
+    document.getElementById('stat-pending').textContent = orders.filter(o=>o.status==='pending').length;
+    document.getElementById('stat-shipped').textContent = orders.filter(o=>o.status==='shipped').length;
+    const rev = orders.reduce((s,o)=>s+o.total_amount,0);
+    document.getElementById('stat-revenue').textContent = Math.round(rev)+'₺';
+    const statusMap={pending:'badge-yellow',preparing:'badge-blue',shipped:'badge-green',delivered:'badge-green',cancelled:'badge-red'};
+    const statusTR={pending:'Bekliyor',preparing:'Hazırlanıyor',shipped:'Kargoda',delivered:'Teslim',cancelled:'İptal'};
+    const tbody = document.querySelector('#orders-table tbody');
+    tbody.innerHTML = orders.map(o=>`
+      <tr>
+        <td style="font-family:'DM Mono',monospace;color:var(--text-3)">ORD-${String(o.id).padStart(6,'0')}</td>
+        <td style="font-weight:500;color:var(--text)">${o.customer_name||'-'}</td>
+        <td><span class="badge ${statusMap[o.status]||'badge-gray'}">${statusTR[o.status]||o.status}</span></td>
+        <td>${o.total_amount.toFixed(2)}₺</td>
+        <td><button class="btn btn-sm" onclick="quickSend('sipariş ${o.id} detayını göster');showPage('chat')">Detay</button></td>
+      </tr>`).join('');
+  } catch(e) {
+    document.querySelector('#orders-table tbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:16px">API bağlantısı kurulamadı</td></tr>';
+  }
+}
+
+// CUSTOMERS - gerçek API
+async function loadCustomers() {
+  try {
+    const res = await fetch(API+'/customers/');
+    const data = await res.json();
+    if(!data.success) return;
+    const customers = data.data;
+    const tbody = document.querySelector('#customers-table tbody');
+    tbody.innerHTML = customers.map(c=>`
+      <tr>
+        <td style="color:var(--text-3)">#${c.id}</td>
+        <td style="font-weight:500;color:var(--text)">${c.full_name}</td>
+        <td style="font-family:'DM Mono',monospace">${c.phone||'-'}</td>
+        <td>${c.address||'-'}</td>
+        <td><button class="btn btn-sm" onclick="quickSend('müşteri ${c.id} istatistiklerini göster');showPage('chat')">Detay</button></td>
+      </tr>`).join('');
+  } catch(e) {
+    document.querySelector('#customers-table tbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:16px">API bağlantısı kurulamadı</td></tr>';
+  }
+}
+
+async function searchCustomer() {
+  const phone = document.getElementById('customer-phone-input').value.trim();
+  if(!phone) return;
+  const result = document.getElementById('customer-result');
+  result.innerHTML='<p style="color:var(--text-3);font-size:13px">Aranıyor...</p>';
+  try {
+    const res = await fetch(API+'/customers/phone/'+phone);
+    const data = await res.json();
+    if(data.success){
+      const c = data.data;
+      result.innerHTML=`<div class="alert alert-success">
+        <strong>${c.full_name}</strong> · ${c.phone} · ${c.address||'Adres yok'}
+      </div>`;
+    } else {
+      result.innerHTML=`<div class="alert alert-warn">Müşteri bulunamadı.</div>`;
+    }
+  } catch(e){result.innerHTML='<div class="alert alert-warn">Bağlantı hatası.</div>';}
+}
+
+async function addCustomer() {
+  const name=document.getElementById('new-name').value;
+  const phone=document.getElementById('new-phone').value;
+  const address=document.getElementById('new-address').value;
+  if(!name||!phone){alert('Ad ve telefon zorunlu.');return;}
+  const result=document.getElementById('add-customer-result');
+  try {
+    const res=await fetch(API+'/agent/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`yeni müşteri ekle: isim "${name}", telefon "${phone}", adres "${address}"`})});
+    const data=await res.json();
+    result.innerHTML=`<div class="alert alert-success">${data.reply}</div>`;
+    loadCustomers();
+  } catch(e){result.innerHTML='<div class="alert alert-warn">Bağlantı hatası.</div>';}
+}
+
+async function trackCargo() {
+  const num=document.getElementById('tracking-input').value.trim();
+  if(!num) return;
+  const result=document.getElementById('cargo-result');
+  result.innerHTML='<p style="color:var(--text-3);font-size:13px">Sorgulanıyor...</p>';
+  try {
+    const res=await fetch(API+'/cargo/track/'+num);
+    const data=await res.json();
+    if(data.success){
+      const d=data.data;
+      const statusMap={label_created:'Etiket Oluşturuldu',in_preparation:'Hazırlanıyor',in_transit:'Kargoda',delivered:'Teslim Edildi'};
+      result.innerHTML=`<div class="alert alert-success">
+        <strong>${d.tracking_number}</strong> · <span class="badge badge-blue">${statusMap[d.cargo_status]||d.cargo_status}</span>
+        · Sipariş durumu: ${d.order_status}
+      </div>`;
+    } else {
+      result.innerHTML=`<div class="alert alert-warn">${data.message}</div>`;
+    }
+  } catch(e){result.innerHTML='<div class="alert alert-warn">Bağlantı hatası.</div>';}
+}
+
+async function updateCargoStatus() {
+  const id=document.getElementById('cargo-order-id').value;
+  const status=document.getElementById('cargo-new-status').value;
+  if(!id) return;
+  const result=document.getElementById('cargo-update-result');
+  try {
+    const res=await fetch(API+'/cargo/'+id+'/status',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({new_status:status})});
+    const data=await res.json();
+    result.innerHTML=data.success
+      ?`<div class="alert alert-success">✓ Güncellendi: ${data.data.order_status}</div>`
+      :`<div class="alert alert-warn">${data.message}</div>`;
+  } catch(e){result.innerHTML='<div class="alert alert-warn">Bağlantı hatası.</div>';}
+}
+
+async function exportExcel(table) {
+  const result=document.getElementById('export-result');
+  result.innerHTML='<p style="color:var(--text-3);font-size:13px">Oluşturuluyor...</p>';
+  try {
+    const res=await fetch(API+'/agent/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`${table} tablosunu excele aktar`})});
+    const data=await res.json();
+    result.innerHTML=`<div class="alert alert-success">${data.reply}</div>`;
+  } catch(e){result.innerHTML='<div class="alert alert-warn">Bağlantı hatası.</div>';}
+}
+
+function reportChat(text){quickSend(text);showPage('chat');}
+</script>
+</body>
+</html>
