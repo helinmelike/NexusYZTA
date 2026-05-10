@@ -4,32 +4,32 @@ from database.models.customer import Customer
 
 def get_customer_by_telegram_id(telegram_user_id: int):
     db = SessionLocal()
-
-    customer = (
-        db.query(Customer)
-        .filter(Customer.telegram_user_id == telegram_user_id)
-        .first()
-    )
-
-    db.close()
-
-    return customer
+    try:
+        return (
+            db.query(Customer)
+            .filter(Customer.telegram_user_id == telegram_user_id)
+            .first()
+        )
+    finally:
+        db.close()
 
 
 def create_customer_from_telegram(user):
     db = SessionLocal()
+    try:
+        customer = Customer(
+            full_name=user.full_name or user.first_name or "Telegram User",
+            telegram_user_id=user.id,
+            phone=None,
+            address="Adres belirtilmedi",
+        )
 
-    customer = Customer(
-        name=user.first_name or "Telegram User",
-        telegram_user_id=user.id,
-    )
-
-    db.add(customer)
-    db.commit()
-    db.refresh(customer)
-    db.close()
-
-    return customer
+        db.add(customer)
+        db.commit()
+        db.refresh(customer)
+        return customer
+    finally:
+        db.close()
 
 
 def get_or_create_customer_from_telegram(user):

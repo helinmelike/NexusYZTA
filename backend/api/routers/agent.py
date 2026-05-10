@@ -11,7 +11,12 @@ chat_history: list[dict] = []
 async def chat(req: AgentRequest):
     global chat_history
 
-    response = run_agent(req.message, chat_history)
+    try:
+        response = run_agent(req.message, chat_history)
+    except Exception:
+        return AgentResponse(
+            reply="Agent su anda LLM servisine baglanamiyor. Lutfen daha sonra tekrar deneyin."
+        )
 
     chat_history.append({"role": "user", "content": req.message})
     chat_history.append({"role": "assistant", "content": response})

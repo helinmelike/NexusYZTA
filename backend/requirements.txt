@@ -6,5 +6,9 @@ anthropic
 langchain-google-genai
 langgraph
 langchain-core
+langchain-openai
 python-dotenv
 openpyxl
+python-telegram-bot
+requests
+alembic==1.18.4
