@@ -35,6 +35,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .btn:hover{background:var(--bg)}
 .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn-primary:hover{background:#235c44}
+.btn-danger{background:var(--danger-light);color:var(--danger);border-color:var(--danger)}
+.btn-danger:hover{background:#fca5a5}
 .btn-sm{padding:4px 10px;font-size:12px}
 .page{display:none;flex:1;overflow-y:auto;padding:24px}
 .page.active{display:block}
@@ -75,6 +77,25 @@ tr:hover td{background:var(--bg)}
 .form-input{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;color:var(--text);background:var(--surface);outline:none}
 .form-input:focus{border-color:var(--accent)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.dash-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.dash-metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.dash-metric-label{font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.dash-metric-value{font-size:28px;font-weight:500;line-height:1;color:var(--text)}
+.dash-metric-sub{font-size:11px;color:var(--text-3);margin-top:4px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px}
+.dash-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.dash-card-title{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:6px}
+.dash-card-count{font-size:11px;color:var(--text-3)}
+.dash-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.dash-row:last-child{border-bottom:none}
+.dash-id{font-size:11px;font-family:'DM Mono',monospace;color:var(--text-3);min-width:64px}
+.dash-name{font-size:13px;color:var(--text);flex:1}
+.dash-right{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap}
+.dash-address{font-size:11px;color:var(--text-3);margin-top:2px;flex:0 0 100%}
+.stock-bar-wrap{width:72px;height:4px;background:var(--border);border-radius:2px}
+.stock-bar{height:4px;border-radius:2px}
 .loading{display:inline-flex;gap:4px;align-items:center}
 .loading span{width:5px;height:5px;border-radius:50%;background:var(--text-3);animation:bounce .8s infinite}
 .loading span:nth-child(2){animation-delay:.15s}
@@ -96,7 +117,10 @@ tr:hover td{background:var(--bg)}
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">Ana Menü</div>
-    <button class="nav-item active" onclick="showPage('chat')">
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('chat')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI Asistan
     </button>
     <button class="nav-item" onclick="showPage('products')">
@@ -123,12 +147,47 @@ tr:hover td{background:var(--bg)}
 
 <div id="main">
   <div class="topbar">
-    <span class="topbar-title" id="page-title">AI Asistan</span>
+    <span class="topbar-title" id="page-title">Dashboard</span>
     <button class="btn" onclick="refreshPage()">↻ Yenile</button>
   </div>
 
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div>
+        <div style="font-size:18px;font-weight:500;color:var(--text)" id="dash-greeting">Günaydın</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="dash-date"></div>
+      </div>
+      <button class="btn" onclick="loadDashboard()">Yenile</button>
+    </div>
+    <div class="dash-metrics">
+      <div class="dash-metric"><div class="dash-metric-label">Bekleyen sipariş</div><div class="dash-metric-value" id="dm-pending">—</div><div class="dash-metric-sub">hazırlanmayı bekliyor</div></div>
+      <div class="dash-metric"><div class="dash-metric-label">Hazırlanıyor</div><div class="dash-metric-value" id="dm-preparing">—</div><div class="dash-metric-sub">depoda işlemde</div></div>
+      <div class="dash-metric"><div class="dash-metric-label">Yolda</div><div class="dash-metric-value" id="dm-shipped">—</div><div class="dash-metric-sub">kargoda taşınıyor</div></div>
+      <div class="dash-metric"><div class="dash-metric-label">Kritik stok</div><div class="dash-metric-value" style="color:var(--danger)" id="dm-lowstock">—</div><div class="dash-metric-sub">ürün kritik seviyede</div></div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dash-card-header"><span class="dash-card-title">Bekleyen siparişler</span><span class="dash-card-count" id="dm-pending-count"></span></div>
+        <div id="dash-orders-list"><div style="color:var(--text-3);font-size:13px;padding:8px 0">Yükleniyor...</div></div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-header"><span class="dash-card-title">Hazırlanacak paketler</span><span class="dash-card-count">ürün bazlı</span></div>
+        <div id="dash-packages-list"><div style="color:var(--text-3);font-size:13px;padding:8px 0">Yükleniyor...</div></div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-header"><span class="dash-card-title">Bugün yola çıkacak kargolar</span><span class="dash-card-count" id="dm-cargo-count"></span></div>
+        <div id="dash-cargo-list"><div style="color:var(--text-3);font-size:13px;padding:8px 0">Yükleniyor...</div></div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-header"><span class="dash-card-title">Kritik stok uyarıları</span><span class="dash-card-count" id="dm-stock-count"></span></div>
+        <div id="dash-stock-list"><div style="color:var(--text-3);font-size:13px;padding:8px 0">Yükleniyor...</div></div>
+      </div>
+    </div>
+  </div>
+
   <!-- CHAT -->
-  <div class="page active" id="page-chat">
+  <div class="page" id="page-chat">
     <div style="max-width:800px">
       <div class="card">
         <div class="quick-btns">
@@ -161,15 +220,34 @@ tr:hover td{background:var(--bg)}
       <div class="card-sm"><div class="stat-label">Toplam Stok</div><div class="stat-value" id="stat-total-stock">—</div></div>
       <div class="card-sm"><div class="stat-label">Ort. Fiyat</div><div class="stat-value" id="stat-avg-price">—</div></div>
     </div>
-    <div class="card">
+    <div class="card" style="margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div class="section-title" style="margin:0">Ürün Listesi</div>
         <button class="btn btn-primary" onclick="quickSend('stok güncelle');showPage('chat')">+ AI ile Güncelle</button>
       </div>
       <table id="products-table">
-        <thead><tr><th>ID</th><th>Ürün Adı</th><th>Fiyat</th><th>Stok</th><th>Durum</th></tr></thead>
-        <tbody><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:24px">Yükleniyor...</td></tr></tbody>
+        <thead><tr><th>ID</th><th>Ürün Adı</th><th>Fiyat</th><th>Stok</th><th>Durum</th><th>İşlem</th></tr></thead>
+        <tbody><tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:24px">Yükleniyor...</td></tr></tbody>
       </table>
+    </div>
+    <div class="card">
+      <div class="section-title">Yeni Ürün Ekle</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label">Ürün Adı</label>
+          <input class="form-input" id="new-product-name" placeholder="Örn: Zeytinyağı"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fiyat (₺)</label>
+          <input class="form-input" id="new-product-price" type="number" min="0" step="0.01" placeholder="0.00"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Başlangıç Stok (adet)</label>
+          <input class="form-input" id="new-product-stock" type="number" min="0" placeholder="0"/>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addProduct()">+ Ürün Ekle</button>
+      <div id="add-product-result" style="margin-top:12px"></div>
     </div>
   </div>
 
@@ -288,14 +366,123 @@ tr:hover td{background:var(--bg)}
 <script>
 const API = 'http://127.0.0.1:8000';
 
+function initDashboardHeader() {
+  const h = new Date().getHours();
+  const greeting = h < 12 ? 'Günaydın' : h < 18 ? 'İyi günler' : 'İyi akşamlar';
+  document.getElementById('dash-greeting').textContent = greeting + ' 👋';
+  const opts = {weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('tr-TR', opts);
+}
+
+async function loadDashboard() {
+  initDashboardHeader();
+  try {
+    const ordRes = await fetch(API + '/orders/');
+    const ordData = await ordRes.json();
+    if (ordData.success) {
+      const orders = ordData.data;
+      const pending = orders.filter(o => o.status === 'pending');
+      const preparing = orders.filter(o => o.status === 'preparing');
+      const shipped = orders.filter(o => o.status === 'shipped');
+      document.getElementById('dm-pending').textContent = pending.length;
+      document.getElementById('dm-preparing').textContent = preparing.length;
+      document.getElementById('dm-shipped').textContent = shipped.length;
+      const activeOrders = orders.filter(o => ['pending','preparing'].includes(o.status));
+      document.getElementById('dm-pending-count').textContent = activeOrders.length + ' sipariş';
+      const statusMap = {pending:'badge-yellow',preparing:'badge-blue',shipped:'badge-green',delivered:'badge-green',cancelled:'badge-red'};
+      const statusTR = {pending:'Bekliyor',preparing:'Hazırlanıyor',shipped:'Kargoda'};
+      document.getElementById('dash-orders-list').innerHTML = activeOrders.length
+        ? activeOrders.map(o => `
+            <div class="dash-row">
+              <span class="dash-id">ORD-${String(o.id).padStart(6,'0')}</span>
+              <span class="dash-name">${o.customer_name || '-'}</span>
+              <span class="badge ${statusMap[o.status]||'badge-gray'}">${statusTR[o.status]||o.status}</span>
+              <span class="dash-right">${o.total_amount.toFixed(0)}₺</span>
+            </div>`).join('')
+        : '<div style="color:var(--text-3);font-size:13px;padding:8px 0">Bekleyen sipariş yok.</div>';
+      const packageOrders = orders.filter(o => ['pending','preparing'].includes(o.status));
+      if (packageOrders.length > 0) {
+        const detailPromises = packageOrders.map(o =>
+          fetch(API + '/orders/' + o.id + '/detail').then(r => r.json()).catch(() => null)
+        );
+        const details = await Promise.all(detailPromises);
+        const totals = {};
+        details.forEach(d => {
+          if (d && d.success) {
+            (d.data.items || []).forEach(item => {
+              totals[item.product_name] = (totals[item.product_name] || 0) + item.quantity;
+            });
+          }
+        });
+        const entries = Object.entries(totals);
+        document.getElementById('dash-packages-list').innerHTML = entries.length
+          ? entries.sort((a,b) => b[1]-a[1]).map(([name, qty]) => `
+              <div class="dash-row">
+                <span class="dash-name">${name}</span>
+                <span class="dash-right">${qty} adet</span>
+              </div>`).join('')
+          : '<div style="color:var(--text-3);font-size:13px;padding:8px 0">Hazırlanacak ürün yok.</div>';
+      } else {
+        document.getElementById('dash-packages-list').innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:8px 0">Hazırlanacak ürün yok.</div>';
+      }
+      const cargoOrders = orders.filter(o => o.status === 'shipped' || o.status === 'preparing');
+      document.getElementById('dm-cargo-count').textContent = cargoOrders.length + ' paket';
+      document.getElementById('dash-cargo-list').innerHTML = cargoOrders.length
+        ? cargoOrders.map(o => {
+            const tracking = 'ORD-' + String(o.id).padStart(6,'0');
+            return `<div class="dash-row" style="flex-wrap:wrap">
+              <span class="dash-name" style="font-weight:500">${o.customer_name || '-'}</span>
+              <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-3)">${tracking}</span>
+              <span class="dash-address" style="width:100%;margin-top:2px;font-size:11px;color:var(--text-3)">Adres için müşteri kaydına bakın</span>
+            </div>`;
+          }).join('')
+        : '<div style="color:var(--text-3);font-size:13px;padding:8px 0">Bugün yola çıkacak kargo yok.</div>';
+    }
+  } catch(e) {
+    ['dash-orders-list','dash-packages-list','dash-cargo-list'].forEach(id => {
+      document.getElementById(id).innerHTML = '<div style="color:var(--danger);font-size:13px;padding:8px 0">API bağlantısı kurulamadı.</div>';
+    });
+  }
+  try {
+    const stRes = await fetch(API + '/products/');
+    const stData = await stRes.json();
+    if (stData.success) {
+      const all = stData.data;
+      const low = all.filter(p => p.stock_quantity <= 20);
+      const warn = all.filter(p => p.stock_quantity > 20 && p.stock_quantity <= 50);
+      const critical = [...low, ...warn].sort((a,b) => a.stock_quantity - b.stock_quantity);
+      document.getElementById('dm-lowstock').textContent = low.length;
+      document.getElementById('dm-stock-count').textContent = critical.length + ' ürün';
+      const maxStock = Math.max(...all.map(p => p.stock_quantity), 1);
+      document.getElementById('dash-stock-list').innerHTML = critical.length
+        ? critical.slice(0,6).map(p => {
+            const pct = Math.round((p.stock_quantity / maxStock) * 100);
+            const color = p.stock_quantity <= 20 ? '#DC2626' : '#B45309';
+            const cls = p.stock_quantity <= 20 ? 'badge-red' : 'badge-yellow';
+            const lbl = p.stock_quantity <= 20 ? 'Kritik' : 'Az';
+            return `<div class="dash-row">
+              <span class="dash-name">${p.name}</span>
+              <div class="stock-bar-wrap"><div class="stock-bar" style="width:${pct}%;background:${color}"></div></div>
+              <span class="dash-right" style="color:${color};min-width:28px;text-align:right">${p.stock_quantity}</span>
+              <span class="badge ${cls}" style="font-size:10px;padding:2px 6px">${lbl}</span>
+            </div>`;
+          }).join('')
+        : '<div style="color:var(--accent);font-size:13px;padding:8px 0">Tüm ürünlerin stoğu yeterli.</div>';
+    }
+  } catch(e) {
+    document.getElementById('dash-stock-list').innerHTML = '<div style="color:var(--danger);font-size:13px;padding:8px 0">API bağlantısı kurulamadı.</div>';
+  }
+}
+
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  const titles = {chat:'AI Asistan',products:'Ürünler & Stok',orders:'Siparişler',customers:'Müşteriler',cargo:'Kargo Takip',reports:'Raporlar'};
-  document.getElementById('page-title').textContent = titles[name]||name;
-  const navMap = {chat:0,products:1,orders:2,customers:3,cargo:4,reports:5};
+  const titles = {dashboard:'Dashboard',chat:'AI Asistan',products:'Ürünler & Stok',orders:'Siparişler',customers:'Müşteriler',cargo:'Kargo Takip',reports:'Raporlar'};
+  document.getElementById('page-title').textContent = titles[name] || name;
+  const navMap = {dashboard:0,chat:1,products:2,orders:3,customers:4,cargo:5,reports:6};
   document.querySelectorAll('.nav-item')[navMap[name]]?.classList.add('active');
+  if(name==='dashboard') loadDashboard();
   if(name==='products') loadProducts();
   if(name==='orders') loadOrders();
   if(name==='customers') loadCustomers();
@@ -303,10 +490,13 @@ function showPage(name) {
 
 function refreshPage() {
   const id = document.querySelector('.page.active')?.id;
+  if(id==='page-dashboard') loadDashboard();
   if(id==='page-products') loadProducts();
   if(id==='page-orders') loadOrders();
   if(id==='page-customers') loadCustomers();
 }
+
+window.addEventListener('DOMContentLoaded', () => loadDashboard());
 
 // CHAT
 async function sendChat() {
@@ -357,7 +547,7 @@ function removeTyping(id){const el=document.getElementById(id);if(el)el.remove()
 function quickSend(text){document.getElementById('chat-input').value=text;sendChat();}
 function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
 
-// PRODUCTS - gerçek API
+// PRODUCTS
 async function loadProducts() {
   try {
     const res = await fetch(API+'/products/');
@@ -368,7 +558,7 @@ async function loadProducts() {
     const low = products.filter(p=>p.stock_quantity<=20).length;
     document.getElementById('stat-low-stock').textContent = low;
     document.getElementById('stat-total-stock').textContent = products.reduce((s,p)=>s+p.stock_quantity,0);
-    const avg = Math.round(products.reduce((s,p)=>s+p.price,0)/products.length);
+    const avg = products.length ? Math.round(products.reduce((s,p)=>s+p.price,0)/products.length) : 0;
     document.getElementById('stat-avg-price').textContent = avg+'₺';
     const tbody = document.querySelector('#products-table tbody');
     tbody.innerHTML = products.map(p=>{
@@ -377,20 +567,65 @@ async function loadProducts() {
         : p.stock_quantity<=50
         ? '<span class="badge badge-yellow">Az</span>'
         : '<span class="badge badge-green">Yeterli</span>';
+      const safeName = p.name.replace(/'/g,"\\'");
       return `<tr>
         <td style="color:var(--text-3);font-family:'DM Mono',monospace">#${p.id}</td>
         <td style="font-weight:500;color:var(--text)">${p.name}</td>
         <td>${p.price.toFixed(2)}₺</td>
         <td>${p.stock_quantity} adet</td>
         <td>${status}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id},'${safeName}')">Sil</button></td>
       </tr>`;
     }).join('');
   } catch(e) {
-    document.querySelector('#products-table tbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:16px">API bağlantısı kurulamadı</td></tr>';
+    document.querySelector('#products-table tbody').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:16px">API bağlantısı kurulamadı</td></tr>';
   }
 }
 
-// ORDERS - gerçek API
+async function addProduct() {
+  const name = document.getElementById('new-product-name').value.trim();
+  const price = parseFloat(document.getElementById('new-product-price').value);
+  const stock = parseInt(document.getElementById('new-product-stock').value) || 0;
+  const result = document.getElementById('add-product-result');
+  if (!name || !price || price <= 0) {
+    result.innerHTML='<div class="alert alert-warn">Ürün adı ve geçerli bir fiyat zorunludur.</div>';
+    return;
+  }
+  try {
+    const res = await fetch(API+'/products/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name, price, stock_quantity: stock})
+    });
+    const data = await res.json();
+    if (data.success) {
+      result.innerHTML=`<div class="alert alert-success">✅ "${data.data.name}" başarıyla eklendi. ID: #${data.data.id}</div>`;
+      document.getElementById('new-product-name').value='';
+      document.getElementById('new-product-price').value='';
+      document.getElementById('new-product-stock').value='';
+      loadProducts();
+    } else {
+      result.innerHTML=`<div class="alert alert-warn">❌ ${data.message}</div>`;
+    }
+  } catch(e) {
+    result.innerHTML='<div class="alert alert-warn">Bağlantı hatası.</div>';
+  }
+}
+
+async function deleteProduct(id, name) {
+  if(!confirm(`"${name}" kalıcı olarak silinecek. Emin misiniz?`)) return;
+  try {
+    const res = await fetch(API+'/products/'+id, {method:'DELETE'});
+    const data = await res.json();
+    if(data.success) {
+      loadProducts();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch(e) { alert('Bağlantı hatası.'); }
+}
+
+// ORDERS
 async function loadOrders() {
   try {
     const res = await fetch(API+'/orders/');
@@ -418,7 +653,7 @@ async function loadOrders() {
   }
 }
 
-// CUSTOMERS - gerçek API
+// CUSTOMERS
 async function loadCustomers() {
   try {
     const res = await fetch(API+'/customers/');
