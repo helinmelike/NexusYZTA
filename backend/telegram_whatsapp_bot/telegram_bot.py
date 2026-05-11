@@ -124,6 +124,17 @@ def get_user_role(user_id: int) -> UserRole:
     return UserRole.CUSTOMER
 
 
+def get_user_role_from_customer(customer: Customer | None) -> UserRole:
+    if customer and getattr(customer, "role", None):
+        role_value = getattr(customer.role, "value", customer.role)
+        role_value = str(role_value).lower()
+        if role_value == "seller":
+            return UserRole.SELLER
+        if role_value == "cooperative":
+            return UserRole.SUPERADMIN
+    return UserRole.CUSTOMER
+
+
 def _btn(menu_fn: Callable, row: int, col: int = 0) -> str:
     val = menu_fn().keyboard[row][col]
     return val.text if hasattr(val, "text") else val
@@ -230,7 +241,8 @@ def _compose_agent_message(sess: UserSession, user_message: str) -> str:
 
 def _agent_chat_http(message: str, user_id: int) -> tuple[bool, str]:
     sess = get_session(user_id)
-    payload = {"message": _compose_agent_message(sess, message)}
+    guidance = "Yaniti okunabilir Turkce yaz. Turkce karakterleri dogru kullan."
+    payload = {"message": f"{guidance}\n\n{_compose_agent_message(sess, message)}"}
     data = json.dumps(payload).encode("utf-8")
 
     for _ in range(AGENT_HTTP_RETRIES + 1):
@@ -245,6 +257,11 @@ def _agent_chat_http(message: str, user_id: int) -> tuple[bool, str]:
                 body = resp.read().decode("utf-8")
             response_json = json.loads(body)
             reply = (response_json.get("reply") or "").strip()
+            if "Ã" in reply or "Å" in reply:
+                try:
+                    reply = reply.encode("latin1", errors="ignore").decode("utf-8", errors="ignore")
+                except Exception:
+                    pass
             if reply:
                 _add_agent_history(sess, "user", message)
                 _add_agent_history(sess, "assistant", reply)
@@ -685,7 +702,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if not customer:
         await _reply(update, UNVERIFIED_TELEGRAM_MESSAGE)
         return
-    role = get_user_role(user_id)
+    role = get_user_role_from_customer(customer)
     sess = get_session(user_id)
 
     if text == BTN_BACK:
@@ -742,7 +759,24 @@ async def _customer_menu_router(update: Update, text: str, sess: UserSession) ->
     elif text == BTN_C_SUPPORT:
         await _reply(update, "📞 <b>Destek</b>\n\nLütfen konunuzu seçin:", customer_support_menu())
     elif text == BTN_C_HELP:
-        await _reply(update, "ℹ️ Yardım için menüden ilgili başlığı seçebilirsiniz.", customer_main_menu())
+        await _reply(
+            update,
+            "<b>Yardim Menusu</b>\n\n"
+            "- Siparis islemleri: Siparis sorgula ve siparislerimden takibini yapin.\n"
+            "- Kargo islemleri: Takip numarasi ile anlik durum gorun.\n"
+            "- Destek: Ozel durumlar icin web destek paneline gecin.\n\n"
+            "Web: https://example.com/support",
+            customer_main_menu(),
+        )
+    elif text == BTN_SUP_CANCEL_INFO:
+        await _reply(update, "Iptal islemleri icin web sitemizi kullanabilirsiniz:\nhttps://example.com/support", customer_support_menu())
+    elif text == BTN_SUP_CARGO_DELAY:
+        sess.state = "waiting_tracking_number"
+        await _reply(update, "Kargo gecikmesi icin takip/siparis numaranizi yazin. Ornek: ORD-000001", customer_cargo_menu())
+    elif text == BTN_SUP_PAYMENT:
+        await _reply(update, "Odeme islemleri icin web sitemizi kullanabilirsiniz:\nhttps://example.com/support", customer_support_menu())
+    elif text == BTN_SUP_ACCOUNT:
+        await _reply(update, "Hesap islemleri icin web sitemizi kullanabilirsiniz:\nhttps://example.com/support", customer_support_menu())
     elif text in SUPPORT_PRESET_RESPONSES:
         await _reply(update, SUPPORT_PRESET_RESPONSES[text], customer_support_menu())
     elif text == BTN_SUP_WRITE:
@@ -900,7 +934,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not customer:
         await _reply(update, UNVERIFIED_TELEGRAM_MESSAGE)
         return
-    role = get_user_role(user_id)
+    role = get_user_role_from_customer(customer)
     if role in (UserRole.SELLER, UserRole.SUPERADMIN):
         await _reply(
             update,
@@ -942,6 +976,7 @@ def run_telegram_bot() -> None:
         raise RuntimeError("TELEGRAM_BOT_TOKEN bulunamadi. Proje kokundeki .env dosyasini kontrol edin.")
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     application.add_handler(CommandHandler("start", cmd_start))
+    application.add_handler(CommandHandler("menu", cmd_start))
     application.add_handler(CallbackQueryHandler(callback_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     application.run_polling()
@@ -949,3 +984,4 @@ def run_telegram_bot() -> None:
 
 if __name__ == "__main__":
     run_telegram_bot()
+

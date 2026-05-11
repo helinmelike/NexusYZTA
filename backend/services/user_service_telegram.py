@@ -41,11 +41,17 @@ def resolve_and_link_customer_from_telegram(user):
         if customer.telegram_user_id and int(customer.telegram_user_id) != int(telegram_user_id):
             return None
 
-        customer.telegram_user_id = telegram_user_id
-        if full_name:
+        dirty = False
+        if customer.telegram_user_id != telegram_user_id:
+            customer.telegram_user_id = telegram_user_id
+            dirty = True
+        if full_name and customer.full_name != full_name:
             customer.full_name = full_name
-        db.commit()
-        db.refresh(customer)
+            dirty = True
+
+        if dirty:
+            db.commit()
+            db.refresh(customer)
         return customer
     finally:
         db.close()
