@@ -12,3 +12,5 @@ openpyxl
 python-telegram-bot
 requests
 alembic==1.18.4
+scikit-learn
+numpy
