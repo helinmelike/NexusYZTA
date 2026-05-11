@@ -4,11 +4,13 @@ import json
 import logging
 import os
 import sys
-from datetime import date
+import asyncio
+from datetime import date, datetime, time, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Awaitable, Callable
 from urllib import error, request
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from dotenv import load_dotenv
 from telegram import Update
@@ -29,7 +31,7 @@ if str(BACKEND_DIR) not in sys.path:
 load_dotenv(dotenv_path=BACKEND_DIR.parent / ".env")
 
 from database.db import SessionLocal
-from database.models.customer import Customer
+from database.models.customer import Customer, CustomerRole
 from database.models.order import Order
 from services.cargo_service import get_cargo_status, get_estimated_delivery, track_cargo, update_cargo_status
 from services.order_access_service import cancel_customer_order, get_customer_order_by_id, get_customer_order_detail
@@ -78,6 +80,11 @@ CB_SUPPORT_OK = "support_ok"
 CB_SUPPORT_NOT_OK = "support_not_ok"
 CB_TICKET_CREATE = "ticket_create"
 CB_TICKET_CANCEL = "ticket_cancel"
+try:
+    BOT_TIMEZONE = ZoneInfo("Europe/Istanbul")
+except ZoneInfoNotFoundError:
+    # Fallback when tzdata is not installed (Windows/common slim envs).
+    BOT_TIMEZONE = timezone(timedelta(hours=3))
 
 
 class UserRole(str, Enum):
@@ -429,6 +436,104 @@ def _seller_report_summary_local() -> dict:
         }
     finally:
         db.close()
+
+
+def _seller_targets() -> list[tuple[int, str]]:
+    db = SessionLocal()
+    try:
+        rows = (
+            db.query(Customer)
+            .filter(Customer.role == CustomerRole.seller)
+            .filter(Customer.telegram_user_id.isnot(None))
+            .all()
+        )
+        return [(int(c.telegram_user_id), c.full_name) for c in rows if c.telegram_user_id]
+    finally:
+        db.close()
+
+
+def _pending_orders_report_text(limit: int = 10) -> str:
+    result = _list_orders_by_status_local("pending", limit=limit)
+    rows = result.get("data", [])
+    lines = ["<b>Günaydın 🌞</b>", "", "<b>Bugün bekleyen siparişleriniz:</b>"]
+    if not rows:
+        lines.append("• Bekleyen sipariş bulunmuyor.")
+    else:
+        for o in rows:
+            lines.append(
+                f"• <code>ORD-{int(o['id']):06d}</code> | {o.get('customer_name') or 'Müşteri'} | {o.get('total_amount')} TL"
+            )
+    lines.extend(["", "Detaylı bilgi için: www.example.com"])
+    return "\n".join(lines)
+
+
+async def _job_send_daily_seller_report(context: ContextTypes.DEFAULT_TYPE) -> None:
+    text = _pending_orders_report_text(limit=20)
+    for chat_id, _name in _seller_targets():
+        try:
+            await context.bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.HTML)
+        except Exception:
+            logger.exception("daily_seller_report_failed chat_id=%s", chat_id)
+
+
+async def _job_send_ozlem_test_report(context: ContextTypes.DEFAULT_TYPE) -> None:
+    db = SessionLocal()
+    try:
+        ozlem = (
+            db.query(Customer)
+            .filter(Customer.full_name == "Özlem Kılıç")
+            .filter(Customer.telegram_user_id.isnot(None))
+            .first()
+        )
+    finally:
+        db.close()
+    if not ozlem or not ozlem.telegram_user_id:
+        logger.warning("ozlem_test_report_skipped: telegram user not found")
+        return
+    try:
+        await context.bot.send_message(
+            chat_id=int(ozlem.telegram_user_id),
+            text=_pending_orders_report_text(limit=20),
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception:
+        logger.exception("ozlem_test_report_failed chat_id=%s", ozlem.telegram_user_id)
+
+
+async def _local_scheduler_loop(application) -> None:
+    last_daily_report_date: date | None = None
+    last_test_report_date: date | None = None
+    while True:
+        try:
+            now = datetime.now(BOT_TIMEZONE)
+            today = now.date()
+            hhmm = (now.hour, now.minute)
+
+            if hhmm == (9, 0) and last_daily_report_date != today:
+                await _job_send_daily_seller_report(type("Ctx", (), {"bot": application.bot})())
+                last_daily_report_date = today
+
+            if hhmm == (23, 30) and last_test_report_date != today:
+                await _job_send_ozlem_test_report(type("Ctx", (), {"bot": application.bot})())
+                last_test_report_date = today
+        except Exception:
+            logger.exception("local_scheduler_loop_failed")
+
+        await asyncio.sleep(30)
+
+
+async def _post_init(application) -> None:
+    application.bot_data["local_scheduler_task"] = asyncio.create_task(_local_scheduler_loop(application))
+
+
+async def _post_shutdown(application) -> None:
+    task = application.bot_data.get("local_scheduler_task")
+    if task:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 
 async def _state_order_query_id(update: Update, sess: UserSession) -> None:
@@ -989,7 +1094,13 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 def run_telegram_bot() -> None:
     if not TELEGRAM_TOKEN or TELEGRAM_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN":
         raise RuntimeError("TELEGRAM_BOT_TOKEN bulunamadi. Proje kokundeki .env dosyasini kontrol edin.")
-    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    application = (
+        ApplicationBuilder()
+        .token(TELEGRAM_TOKEN)
+        .post_init(_post_init)
+        .post_shutdown(_post_shutdown)
+        .build()
+    )
     application.add_handler(CommandHandler("start", cmd_start))
     application.add_handler(CommandHandler("menu", cmd_start))
     application.add_handler(CallbackQueryHandler(callback_handler))
