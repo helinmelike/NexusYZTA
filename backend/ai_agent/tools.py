@@ -94,8 +94,9 @@ def tool_update_price(product_id: int, new_price: float) -> str:
 @tool
 def tool_add_product(name: str, price: float, stock_quantity: int = 0) -> str:
     """
-    Yeni ürün ekler.
+    Yeni ürün ekler. Fiyat mutlaka belirtilmelidir, 0 olamaz.
     Kullanım: 'yeni ürün ekle: zeytinyağı 180 tl 50 adet'
+    Eğer kullanıcı fiyat belirtmediyse, fiyatı sormadan ekleme yapma.
     """
     from services.product_service import add_product as _add_product
     result = _add_product(name, price, stock_quantity)
@@ -103,6 +104,19 @@ def tool_add_product(name: str, price: float, stock_quantity: int = 0) -> str:
         return f"❌ {result['message']}"
     d = result["data"]
     return f"✅ '{d['name']}' eklendi. ID: {d['id']} | Fiyat: {d['price']:.2f}₺ | Stok: {d['stock_quantity']}"
+
+
+@tool
+def tool_delete_product(product_id: int) -> str:
+    """
+    Ürünü sistemden kalıcı olarak siler.
+    Kullanım: 'ürün 7yi sil', 'gül suyunu kaldır', 'ID 6 olan ürünü sil'
+    """
+    from services.product_service import delete_product
+    result = delete_product(product_id)
+    if not result["success"]:
+        return f"❌ {result['message']}"
+    return f"✅ '{result['data']['name']}' başarıyla silindi."
 
 
 @tool
@@ -269,6 +283,7 @@ all_tools = [
     tool_update_stock,
     tool_update_price,
     tool_add_product,
+    tool_delete_product,
     tool_list_recent_orders,
     tool_get_order_detail,
     tool_get_customer_orders,

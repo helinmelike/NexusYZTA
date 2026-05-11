@@ -1,3 +1,5 @@
+from core.config import settings
+print("DATABASE_URL:", settings.database_url)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

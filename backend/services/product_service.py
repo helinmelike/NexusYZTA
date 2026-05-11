@@ -3,6 +3,8 @@
 from contextlib import contextmanager
 from typing import Any
 
+from sqlalchemy import func
+
 from database.db import SessionLocal
 from database.models.inventory_movement import InventoryMovement
 from database.models.product import Product
@@ -133,12 +135,30 @@ def update_price(product_id: int, new_price: float) -> dict[str, Any]:
 
 def add_product(name: str, price: float, stock_quantity: int = 0) -> dict[str, Any]:
     """Yeni ürün ekler."""
+    if not name or not name.strip():
+        return {"success": False, "message": "Ürün adı boş olamaz", "data": None}
+    if price <= 0:
+        return {"success": False, "message": "Fiyat 0'dan büyük olmalıdır. Lütfen fiyatı belirtin.", "data": None}
+    clean_name = name.strip()
     with _session_scope() as db:
-        existing = db.query(Product).filter(Product.name == name).first()
+        existing = db.query(Product).filter(
+            func.lower(Product.name) == func.lower(clean_name)
+        ).first()
         if existing:
-            return {"success": False, "message": "Bu isimde ürün zaten var", "data": _serialize_product(existing)}
-        product = Product(name=name, price=price, stock_quantity=stock_quantity)
+            return {"success": False, "message": f"'{clean_name}' adında ürün zaten mevcut", "data": _serialize_product(existing)}
+        product = Product(name=clean_name, price=price, stock_quantity=stock_quantity)
         db.add(product)
         db.flush()
         db.refresh(product)
         return {"success": True, "message": "Product created", "data": _serialize_product(product)}
+
+
+def delete_product(product_id: int) -> dict[str, Any]:
+    """Ürünü siler."""
+    with _session_scope() as db:
+        product = db.query(Product).filter(Product.id == product_id).first()
+        if not product:
+            return {"success": False, "message": "Ürün bulunamadı", "data": None}
+        name = product.name
+        db.delete(product)
+        return {"success": True, "message": f"'{name}' silindi", "data": {"id": product_id, "name": name}}
