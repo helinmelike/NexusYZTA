@@ -33,6 +33,7 @@ from database.models.customer import Customer
 from database.models.order import Order
 from services.cargo_service import get_cargo_status, get_estimated_delivery, track_cargo, update_cargo_status
 from services.order_access_service import cancel_customer_order, get_customer_order_by_id, get_customer_order_detail
+from services.order_service import get_customer_orders
 from services.product_service import add_product, check_stock, low_stock_products, update_stock
 from services.support_service import create_support_ticket
 from services.user_service_telegram import get_customer_by_telegram_id, get_or_create_customer_from_telegram
@@ -174,6 +175,8 @@ WEB_SUPPORT_MESSAGE = (
     "🌐 Detaylı işlemler için web panelimizi kullanabilirsiniz.\n"
     "🔗 https://example.com"
 )
+ORDER_WEB_URL = "https://example.com/order"
+ORDER_REDIRECT_MESSAGE = f"Sipariş vermek için sitemizi kullanabilirsiniz: {ORDER_WEB_URL}"
 
 MENU_BUTTON_TEXTS = {
     BTN_C_ORDER, BTN_C_CARGO, BTN_C_SUPPORT, BTN_C_HELP,
@@ -438,6 +441,13 @@ async def _state_order_detail_id(update: Update, sess: UserSession) -> None:
         await _reply(update, fmt_order_detail(result["data"]), customer_order_menu())
     else:
         await _error(update, result.get("message", "Siparis detayi bulunamadi."), customer_order_menu())
+
+
+def _fmt_customer_orders_list(orders: list[dict]) -> str:
+    if not orders:
+        return "Henüz siparişiniz bulunmuyor."
+    blocks = [fmt_order_basic(o) for o in orders[:10]]
+    return "\n\n".join(blocks)
 
 
 async def _state_cancel_order_id(update: Update, sess: UserSession) -> None:
@@ -744,11 +754,14 @@ async def _customer_menu_router(update: Update, text: str, sess: UserSession) ->
         sess.state = "waiting_order_query_id"
         await _reply(update, "Lütfen sipariş numaranızı yazın. Örnek: 1 veya ORD-000001", customer_order_menu())
     elif text == BTN_O_CREATE_AI:
-        sess.state = "waiting_order_create_ai"
-        await _reply(update, "Ürün ve miktarı yazabilirsiniz. Örnek: 3 adet Domates Salçası", customer_order_menu())
+        await _reply(update, ORDER_REDIRECT_MESSAGE, customer_order_menu())
     elif text == BTN_O_DETAIL:
-        sess.state = "waiting_order_detail_id"
-        await _reply(update, "Lütfen görüntülemek istediğiniz sipariş numarasını yazın. Örnek: ORD-000001", customer_order_menu())
+        customer = get_or_create_customer_from_telegram(update.message.from_user)
+        result = get_customer_orders(customer.id)
+        if result.get("success"):
+            await _reply(update, _fmt_customer_orders_list(result.get("data", [])), customer_order_menu())
+        else:
+            await _error(update, result.get("message", "Siparisleriniz alinamadi."), customer_order_menu())
     elif text == BTN_CARGO_TRACK:
         sess.state = "waiting_tracking_number"
         await _reply(update, "Lutfen takip numaranizi yazin. Ornek: ORD-000001", customer_cargo_menu())

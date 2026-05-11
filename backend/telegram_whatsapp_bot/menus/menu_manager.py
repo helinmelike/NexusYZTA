@@ -14,7 +14,7 @@ def customer_main_menu() -> ReplyKeyboardMarkup:
 def customer_order_menu() -> ReplyKeyboardMarkup:
     keyboard = [
         ["🔍 Sipariş Sorgula"],
-        ["🧠 Sipariş Oluştur (AI)"],
+        ["🧠 Sipariş Ver (Web)"],
         ["📋 Siparişlerim"],
         ["⬅️ Geri"],
     ]

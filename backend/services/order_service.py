@@ -17,6 +17,31 @@ from database.models.product import Product
 logger = logging.getLogger(__name__)
 
 
+def _ensure_order_schema_postgres(db: Session) -> None:
+    """Ensure required order columns exist in PostgreSQL/Supabase."""
+    db.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number VARCHAR"))
+    db.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ"))
+    db.execute(
+        text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_orders_order_number ON orders (order_number)"
+        )
+    )
+    db.execute(
+        text(
+            "UPDATE orders "
+            "SET order_number = 'ORD-' || LPAD(id::text, 6, '0') "
+            "WHERE order_number IS NULL"
+        )
+    )
+    db.execute(
+        text(
+            "UPDATE orders "
+            "SET created_at = NOW() "
+            "WHERE created_at IS NULL"
+        )
+    )
+
+
 @contextmanager
 def _session_scope():
     """Provide a transactional scope around a series of operations."""
@@ -56,19 +81,6 @@ def _serialize_order(order: Order, include_items: bool = False) -> dict[str, Any
     return payload
 
 
-def _ensure_order_schema(db: Session) -> None:
-    columns = {
-        row[1]
-        for row in db.execute(text("PRAGMA table_info(orders)")).fetchall()
-    }
-    if "order_number" not in columns:
-        db.execute(text("ALTER TABLE orders ADD COLUMN order_number VARCHAR"))
-        db.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_orders_order_number ON orders (order_number)"))
-    if "created_at" not in columns:
-        db.execute(text("ALTER TABLE orders ADD COLUMN created_at DATETIME"))
-        db.execute(text("UPDATE orders SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL"))
-
-
 def create_order(customer_name: str, product_name: str) -> dict[str, Any]:
     """
     Backward-compatible helper used by Telegram bot.
@@ -78,8 +90,7 @@ def create_order(customer_name: str, product_name: str) -> dict[str, Any]:
     """
     db = SessionLocal()
     try:
-        _ensure_order_schema(db)
-
+        _ensure_order_schema_postgres(db)
         customer = db.query(Customer).filter(Customer.full_name == customer_name).first()
         if not customer:
             customer = Customer(
@@ -140,7 +151,7 @@ def create_order(customer_name: str, product_name: str) -> dict[str, Any]:
 def get_order_by_id(order_id: int) -> dict[str, Any]:
     """Return basic order data by order id."""
     with _session_scope() as db:
-        _ensure_order_schema(db)
+        _ensure_order_schema_postgres(db)
         order = (
             db.query(Order)
             .options(joinedload(Order.customer))
@@ -155,7 +166,7 @@ def get_order_by_id(order_id: int) -> dict[str, Any]:
 def get_customer_orders(customer_id: int) -> dict[str, Any]:
     """List all orders of a given customer."""
     with _session_scope() as db:
-        _ensure_order_schema(db)
+        _ensure_order_schema_postgres(db)
         orders = (
             db.query(Order)
             .options(joinedload(Order.customer))
@@ -170,7 +181,7 @@ def get_customer_orders(customer_id: int) -> dict[str, Any]:
 def cancel_order(order_id: int) -> dict[str, Any]:
     """Cancel order if not already shipped."""
     with _session_scope() as db:
-        _ensure_order_schema(db)
+        _ensure_order_schema_postgres(db)
         order = (
             db.query(Order)
             .options(joinedload(Order.items).joinedload(OrderItem.product))
@@ -195,7 +206,7 @@ def list_recent_orders(limit: int = 10) -> dict[str, Any]:
     """List most recent orders."""
     safe_limit = max(1, min(int(limit), 100))
     with _session_scope() as db:
-        _ensure_order_schema(db)
+        _ensure_order_schema_postgres(db)
         orders = (
             db.query(Order)
             .options(joinedload(Order.customer))
@@ -210,7 +221,7 @@ def list_recent_orders(limit: int = 10) -> dict[str, Any]:
 def get_order_detail(order_id: int) -> dict[str, Any]:
     """Return detailed order payload with nested items."""
     with _session_scope() as db:
-        _ensure_order_schema(db)
+        _ensure_order_schema_postgres(db)
         order = (
             db.query(Order)
             .options(
