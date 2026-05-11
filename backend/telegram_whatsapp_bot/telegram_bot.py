@@ -34,7 +34,7 @@ from database.models.order import Order
 from services.cargo_service import get_cargo_status, get_estimated_delivery, track_cargo, update_cargo_status
 from services.order_access_service import cancel_customer_order, get_customer_order_by_id, get_customer_order_detail
 from services.order_service import get_customer_orders
-from services.product_service import add_product, check_stock, low_stock_products, update_stock
+from services.product_service import add_product, check_stock, list_products, low_stock_products, update_stock
 from services.support_service import create_support_ticket
 from services.user_service_telegram import get_customer_by_telegram_id, get_or_create_customer_from_telegram
 from telegram_whatsapp_bot.ai_router import route_text
@@ -180,7 +180,6 @@ BTN_SO_DELIVERED = _btn(seller_order_menu, 3)
 
 BTN_SC_TO_SHIP = _btn(seller_cargo_menu, 0)
 BTN_SC_STATUS = _btn(seller_cargo_menu, 1)
-BTN_SC_CODE = _btn(seller_cargo_menu, 2)
 
 WEB_SUPPORT_MESSAGE = (
     "🌐 Detaylı işlemler için web panelimizi kullanabilirsiniz.\n"
@@ -197,7 +196,7 @@ MENU_BUTTON_TEXTS = {
     BTN_S_ORDERS, BTN_S_STOCK, BTN_S_CARGO, BTN_S_REPORTS, BTN_S_HELP,
     BTN_STOCK_STATUS, BTN_STOCK_LOW, BTN_STOCK_ADD, BTN_STOCK_UPDATE,
     BTN_SO_TODAY, BTN_SO_NEW, BTN_SO_PREPARING, BTN_SO_DELIVERED,
-    BTN_SC_TO_SHIP, BTN_SC_STATUS, BTN_SC_CODE,
+    BTN_SC_TO_SHIP, BTN_SC_STATUS,
 }
 
 SUPPORT_PRESET_RESPONSES = {
@@ -604,14 +603,29 @@ async def _state_stock_update(update: Update, sess: UserSession) -> None:
     raw = update.message.text.strip()
     parts = [p.strip() for p in raw.split(",")]
     if len(parts) != 2:
-        await _error(update, "Format: ürün_id, değişim\nÖrnek: 3, -5 veya 3, 20", seller_stock_menu())
+        await _error(update, "Format: urun_id veya urun_adi, degisim\nOrnek: 3, -5 veya Organik Bal, 20", seller_stock_menu())
         return
+
+    product_ref = parts[0]
     try:
-        product_id = int(parts[0])
         delta = int(parts[1])
     except ValueError:
-        await _error(update, "Urun ID ve degisim tam sayi olmali.", seller_stock_menu())
+        await _error(update, "Degisim tam sayi olmali. Ornek: -5 veya 20", seller_stock_menu())
         return
+
+    product_id: int | None = None
+    try:
+        product_id = int(product_ref)
+    except ValueError:
+        products_resp = list_products()
+        products = products_resp.get("data", []) if products_resp.get("success") else []
+        ref_lower = product_ref.lower()
+        match = next((p for p in products if str(p.get("name", "")).lower() == ref_lower), None)
+        if match:
+            product_id = int(match["id"])
+        else:
+            await _error(update, f"Urun bulunamadi: {product_ref}", seller_stock_menu())
+            return
 
     sess.state = None
     result = update_stock(product_id, delta, note="Seller panel stock update")
@@ -619,11 +633,11 @@ async def _state_stock_update(update: Update, sess: UserSession) -> None:
         data = result["data"]
         await _reply(
             update,
-            f"✅ Stok güncellendi\nÜrün: {data['product_name']}\nÖnce: {data['previous_stock']}\nSonra: {data['new_stock']}",
+            f"Stok guncellendi\nUrun: {data['product_name']}\nOnce: {data['previous_stock']}\nSonra: {data['new_stock']}",
             seller_stock_menu(),
         )
     else:
-        await _error(update, result.get("message", "Stok güncellenemedi."), seller_stock_menu())
+        await _error(update, result.get("message", "Stok guncellenemedi."), seller_stock_menu())
 
 
 async def _state_seller_cargo_status_order_id(update: Update, sess: UserSession) -> None:
@@ -639,21 +653,6 @@ async def _state_seller_cargo_status_order_id(update: Update, sess: UserSession)
         await _error(update, result.get("message", "Kargo durumu alinamadi."), seller_cargo_menu())
 
 
-async def _state_seller_cargo_code_order_id(update: Update, sess: UserSession) -> None:
-    order_id = _safe_int(update.message.text)
-    if order_id is None:
-        await _error(update, "Gecerli bir siparis referansi girin. Ornek: 1 veya ORD-000001", seller_cargo_menu())
-        return
-    sess.state = None
-    result = update_cargo_status(order_id, "shipped")
-    if result.get("success"):
-        await _reply(
-            update,
-            f"🧾 Kargo kodu oluşturuldu\nTakip No: {result['data']['tracking_number']}\nDurum: {result['data']['order_status']}",
-            seller_cargo_menu(),
-        )
-    else:
-        await _error(update, result.get("message", "Kargo kodu olusturulamadi."), seller_cargo_menu())
 
 
 _STATE_HANDLERS: dict[str, Callable[[Update, UserSession], Awaitable[None]]] = {
@@ -669,7 +668,6 @@ _STATE_HANDLERS: dict[str, Callable[[Update, UserSession], Awaitable[None]]] = {
     "waiting_stock_add": _state_stock_add,
     "waiting_stock_update": _state_stock_update,
     "waiting_seller_cargo_status_order_id": _state_seller_cargo_status_order_id,
-    "waiting_seller_cargo_code_order_id": _state_seller_cargo_code_order_id,
 }
 
 
@@ -844,18 +842,27 @@ async def _seller_menu_router(update: Update, text: str, sess: UserSession) -> N
         d = result["data"]
         await _reply(
             update,
-            "Rapor ozeti\n"
-            f"Toplam: {d['total_orders']}\n"
-            f"Yeni(Pending): {d['pending_orders']}\n"
-            f"Hazirlanan: {d['preparing_orders']}\n"
-            f"Kargoda: {d['shipped_orders']}\n"
-            f"Teslim: {d['delivered_orders']}\n"
-            f"Iptal: {d['cancelled_orders']}\n"
-            f"Ciro: {d['gross_revenue']} TL",
+            "<b>📊 Rapor Özeti</b>\n\n"
+            f"• Toplam Sipariş: {d['total_orders']}\n"
+            f"• Yeni (Pending): {d['pending_orders']}\n"
+            f"• Hazırlanan: {d['preparing_orders']}\n"
+            f"• Kargoda: {d['shipped_orders']}\n"
+            f"• Teslim Edilen: {d['delivered_orders']}\n"
+            f"• İptal Edilen: {d['cancelled_orders']}\n"
+            f"• Ciro: {d['gross_revenue']} TL\n\n"
+            "Detaylı bilgi için: www.example.com",
             seller_main_menu(),
         )
     elif text == BTN_S_HELP:
-        await _reply(update, "Yardim icin ilgili menuyu secebilirsiniz.", seller_main_menu())
+        await _reply(
+            update,
+            "<b>ℹ️ Satıcı Yardım</b>\n\n"
+            "• Sipariş Yönetimi: Günlük/yeni/hazırlanan/teslim siparişleri takip edin.\n"
+            "• Stok Yönetimi: Ürün ekleyin, stok durumunu kontrol edin, stok değişimini güncelleyin.\n"
+            "• Kargo Yönetimi: Kargoya verilecek siparişleri ve kargo durumlarını görüntüleyin.\n\n"
+            "Detaylı bilgi için: www.example.com",
+            seller_main_menu(),
+        )
     elif text == BTN_STOCK_STATUS:
         sess.state = "waiting_stock_product_id"
         await _reply(update, "Urun ID girin. Ornek: 1", seller_stock_menu())
@@ -874,7 +881,18 @@ async def _seller_menu_router(update: Update, text: str, sess: UserSession) -> N
         await _reply(update, "Urun ekleme formati: urun adi, fiyat, stok", seller_stock_menu())
     elif text == BTN_STOCK_UPDATE:
         sess.state = "waiting_stock_update"
-        await _reply(update, "Stok guncelleme formati: urun_id, degisim", seller_stock_menu())
+        products_result = list_products()
+        rows = products_result.get("data", []) if products_result.get("success") else []
+        if rows:
+            lines = ["Urunler:"]
+            for p in rows[:30]:
+                lines.append(f"#{p['id']} {p['name']} | Stok: {p['stock_quantity']}")
+            lines.append("")
+            lines.append("Stok guncelleme formati: urun_id veya urun_adi, degisim")
+            lines.append("Ornek: 3, -5 veya Organik Bal, 20")
+            await _reply(update, "\n".join(lines), seller_stock_menu())
+        else:
+            await _reply(update, "Stok guncelleme formati: urun_id veya urun_adi, degisim", seller_stock_menu())
     elif text == BTN_SO_NEW:
         result = _list_orders_by_status_local("pending", limit=20)
         rows = result.get("data", [])
@@ -914,9 +932,6 @@ async def _seller_menu_router(update: Update, text: str, sess: UserSession) -> N
             await _reply(update, "Kargoya verilecek siparis yok.", seller_cargo_menu())
     elif text == BTN_SC_STATUS:
         sess.state = "waiting_seller_cargo_status_order_id"
-        await _reply(update, "Siparis ID girin. Ornek: 1", seller_cargo_menu())
-    elif text == BTN_SC_CODE:
-        sess.state = "waiting_seller_cargo_code_order_id"
         await _reply(update, "Siparis ID girin. Ornek: 1", seller_cargo_menu())
     else:
         await _reply(
@@ -984,4 +999,3 @@ def run_telegram_bot() -> None:
 
 if __name__ == "__main__":
     run_telegram_bot()
-
