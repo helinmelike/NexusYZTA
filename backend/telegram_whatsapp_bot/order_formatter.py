@@ -29,30 +29,38 @@ def format_order_success(order: dict[str, Any], product_name: str, quantity: int
     )
 
 
-def resolve_order_id_from_text(text: str) -> int | None:
-    raw = (text or "").strip()
-    if not raw:
-        return None
+def format_warehouse_report(orders_data: list[dict[str, Any]]) -> str:
+    if not orders_data:
+        return "📦 <b>Bugün hazırlanacak yeni sipariş bulunmuyor.</b>"
+    
+    report = "📋 <b>GÜNLÜK DEPO HAZIRLIK LİSTESİ</b>\n"
+    report += "--------------------------------\n\n"
+    
+    # Ürün bazlı gruplama yaparak depocuya kolaylık sağlıyoruz
+    summary = {}
+    for o in orders_data:
+        p_name = o.get("product_name", "Bilinmeyen Ürün")
+        summary[p_name] = summary.get(p_name, 0) + o.get("quantity", 0)
+    
+    for product, qty in summary.items():
+        report += f"🔹 {product}: <b>{qty} adet</b>\n"
+    
+    report += "\n✅ Lütfen ürünleri hazırlayıp kurye rotasına hazır hale getirin."
+    return report
 
-    order_number_match = _ORDER_NUMBER_RE.search(raw)
-    if order_number_match:
-        order_number = f"ORD-{order_number_match.group(1)}"
-        db = SessionLocal()
-        try:
-            order = db.query(Order).filter(Order.order_number == order_number).first()
-            return int(order.id) if order else None
-        finally:
-            db.close()
-
-    order_id_match = _ORDER_ID_RE.search(raw)
-    if order_id_match:
-        return int(order_id_match.group(1))
-
-    any_number_match = re.search(r"\b(\d+)\b", raw)
-    if any_number_match:
-        return int(any_number_match.group(1))
-
-    if raw.isdigit():
-        return int(raw)
-
-    return None
+def format_courier_report(orders_data: list[dict[str, Any]]) -> str:
+    if not orders_data:
+        return "🚚 <b>Bugün teslim edilecek sipariş bulunmuyor.</b>"
+    
+    report = "📍 <b>GÜNLÜK TESLİMAT ROTASI</b>\n"
+    report += "--------------------------------\n\n"
+    
+    for i, o in enumerate(orders_data, 1):
+        order_num = o.get("order_number", "N/A")
+        address = o.get("address", "Adres Bilgisi Yok")
+        customer = o.get("customer_name", "Müşteri")
+        report += f"{i}. <b>{order_num}</b> - {customer}\n"
+        report += f"🏠 {address}\n\n"
+    
+    report += "🛣️ İyi yolculuklar, güvenli sürüşler!"
+    return report
