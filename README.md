@@ -1,26 +1,67 @@
-# yzta-kobi
+# Instagram DM Otomasyon (Hackathon Demo)
 
-# 🚀 NexusAI: Otonom KOBİ Operasyon Merkezi
+Bu branch/?al??ma alan?, **Python + Selenium** ile Instagram DM otomasyonu i?in g?venli ve mod?ler bir ba?lang?? mimarisi i?erir.
 
-NexusAI, KOBİ'lerin ve kooperatiflerin operasyonel yükünü sıfıra indirmeyi hedefleyen, yapay zeka ajanları tarafından yönetilen uçtan uca bir otomasyon sistemidir.
+## ?zellikler
+- Instagram login (.env ile g?venli kimlik bilgisi y?netimi)
+- DM okuma altyap?s?
+- Otomatik yan?t (handler + service katman?)
+- Mod?ler yap? (ileride Telegram/WhatsApp kanallar? i?in geni?letilebilir)
 
-## 📋 Problem Tanımı
-KOBİ'ler günlük 2-3 saatlerini manuel sipariş takibi ve müşteri sorularıyla kaybetmektedir. NexusAI, bu süreci otonom hale getirerek verimliliği artırır.
+## Dizin Yap?s?
+```text
+project_root/
+?
+??? channels/
+?   ??? instagram/
+?       ??? bot.py
+?       ??? login.py
+?       ??? message_reader.py
+?       ??? message_sender.py
+?       ??? handlers.py
+?
+??? services/
+?   ??? order_service.py
+?   ??? support_service.py
+?   ??? cargo_service.py
+?
+??? .env.example
+??? .gitignore
+??? requirements.txt
+??? main.py
+```
 
-## ✨ Temel Özellikler
-*   **Müşteri İletişim Otomasyonu:** Telegram/WhatsApp üzerinden doğal dil ile sipariş ve stok sorgulama.
-*   **Proaktif Kargo Takibi:** Gecikmeleri müşteri sormadan tespit edip bildirme.
-*   **Akıllı Stok Yönetimi:** Kritik eşik analizi ve otomatik tedarikçi mail taslağı hazırlama.
-*   **Sabah Raporu:** Yöneticiye her sabah operasyonel özet sunumu.
+## Kurulum
+1. Sanal ortam olu?turun ve aktif edin.
+2. Ba??ml?l?klar? kurun:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. `.env.example` dosyas?n? kopyalay?p `.env` olu?turun:
+   ```bash
+   copy .env.example .env
+   ```
+4. `.env` dosyas?n? doldurun:
+   ```env
+   INSTAGRAM_USERNAME=your_username
+   INSTAGRAM_PASSWORD=your_password
+   INSTAGRAM_HEADLESS=false
+   INSTAGRAM_AUTO_REPLY_ENABLED=true
+   INSTAGRAM_AUTO_REPLY_TEXT=Merhaba, mesaj?n?z al?nd?. En k?sa s?rede d?n?? yapaca??z.
+   ```
 
-## 🛠 Teknik Mimari
-*   **LLM:** GPT-4o / Claude 3.5 Sonnet
-*   **Orchestration:** CrewAI / LangChain
-*   **Database/API:** Airtable (Stok ve Sipariş Yönetimi)
-*   **Interface:** Telegram Bot API & Streamlit Dashboard
+## ?al??t?rma
+```bash
+python main.py
+```
 
-## 🚀 Kurulum
-1. Repoyu klonlayın: `git clone https://github.com/kullanici/nexus-ai.git`
-2. Bağımlılıkları yükleyin: `pip install -r requirements.txt`
-3. `.env` dosyasını oluşturun ve API keylerinizi girin.
-4. Uygulamayı başlatın: `python src/main.py`
+## G?venlik Notlar?
+- Instagram kullan?c? ad?/?ifre **koda hardcode edilmez**.
+- T?m gizli bilgiler `.env` dosyas?ndan okunur.
+- `.env` dosyas? `.gitignore` i?inde yer al?r.
+- Uygulama loglar?nda hassas bilgi yazd?r?lmaz.
+
+## Geni?letme Plan?
+- `services/` katman? mevcut backend API?leriyle entegre edilebilir.
+- `channels/` alt?na `telegram/`, `whatsapp/` benzeri yeni kanallar eklenebilir.
+- Selector stabilitesi i?in ileride merkezi `selectors.py` veya test katman? eklenebilir.

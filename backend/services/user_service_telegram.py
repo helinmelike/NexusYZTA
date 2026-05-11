@@ -16,7 +16,7 @@ def get_customer_by_telegram_id(telegram_user_id: int):
 
 def resolve_and_link_customer_from_telegram(user):
     telegram_user_id = user.id
-    full_name = user.full_name or user.first_name or ""
+    full_name = (user.full_name or user.first_name or "").strip() or f"Telegram User {telegram_user_id}"
 
     db = SessionLocal()
     try:
@@ -35,7 +35,16 @@ def resolve_and_link_customer_from_telegram(user):
             )
 
         if not customer:
-            return None
+            customer = Customer(
+                full_name=full_name,
+                telegram_user_id=telegram_user_id,
+                phone=None,
+                address=None,
+            )
+            db.add(customer)
+            db.commit()
+            db.refresh(customer)
+            return customer
 
         # Prevent hijacking if a different Telegram id is already linked.
         if customer.telegram_user_id and int(customer.telegram_user_id) != int(telegram_user_id):

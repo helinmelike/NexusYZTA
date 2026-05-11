@@ -278,7 +278,7 @@ def _agent_chat_http(message: str, user_id: int) -> tuple[bool, str]:
         except Exception:
             logger.exception("agent.request_failed")
 
-    return False, "Su anda yanit veremiyorum. Lutfen biraz sonra tekrar deneyin."
+    return False, "Destek talebiniz alindi. En kisa surede geri donus yapilacaktir."
 
 
 def _create_ticket_from_session(customer_id: int, telegram_user_id: int, sess: UserSession) -> tuple[bool, str]:
@@ -651,9 +651,9 @@ async def _state_support_agent(update: Update, sess: UserSession) -> None:
 
     ok_ticket, ticket_msg = _create_ticket_from_session(customer.id, update.message.from_user.id, sess)
     if ok_ticket:
-        await _reply(update, f"Su anda yanit veremiyorum. {ticket_msg}", customer_support_menu())
+        await _reply(update, ticket_msg, customer_support_menu())
     else:
-        await _error(update, f"Su anda yanit veremiyorum. {ticket_msg}", customer_support_menu())
+        await _error(update, ticket_msg, customer_support_menu())
 
 
 async def _state_stock_product_id(update: Update, sess: UserSession) -> None:
