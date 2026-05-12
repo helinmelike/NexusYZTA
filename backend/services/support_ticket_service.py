@@ -127,6 +127,55 @@ def get_ticket_by_id(ticket_id: int, customer_id: int, telegram_user_id: int | N
         db.close()
 
 
+def list_all_open_tickets(status: str | None = None) -> dict[str, Any]:
+    """
+    Admin dashboard için tüm ticketları listeler.
+    status filtresi: 'open', 'in_progress', 'resolved' veya None (hepsi)
+    """
+    db = SessionLocal()
+    try:
+        query = (
+            db.query(SupportTicket, Customer)
+            .join(Customer, Customer.id == SupportTicket.customer_id)
+            .order_by(SupportTicket.created_at.desc())
+        )
+        if status:
+            query = query.filter(SupportTicket.status == status)
+
+        rows = query.limit(100).all()
+
+        data = []
+        for ticket, customer in rows:
+            entry = _serialize_ticket(ticket)
+            entry["customer_name"] = customer.full_name if customer else "Bilinmiyor"
+            entry["customer_phone"] = customer.phone if customer else None
+            msg = ticket.message or ""
+            if "iade" in msg.lower():
+                entry["topic"] = "İade"
+            elif "iptal" in msg.lower():
+                entry["topic"] = "İptal"
+            elif "destek" in msg.lower() or "escalation" in msg.lower():
+                entry["topic"] = "Destek"
+            elif "kargo" in msg.lower() or "gecik" in msg.lower():
+                entry["topic"] = "Kargo"
+            else:
+                entry["topic"] = "Diğer"
+            data.append(entry)
+
+        return {"success": True, "message": "Ticketlar listelendi.", "data": data}
+    except Exception:
+        db.rollback()
+        logger.exception("support_ticket.list_all.exception")
+        return {"success": False, "message": "Ticketlar listelenemedi.", "data": []}
+    finally:
+        db.close()
+
+
+def admin_resolve_ticket(ticket_id: int) -> dict[str, Any]:
+    """Admin panelden ticket'ı çözüldü olarak işaretle."""
+    return update_ticket_status(ticket_id=ticket_id, status=STATUS_RESOLVED)
+
+
 def update_ticket_status(
     ticket_id: int,
     status: str,

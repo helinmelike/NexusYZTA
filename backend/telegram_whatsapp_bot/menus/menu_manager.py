@@ -1,4 +1,4 @@
-﻿from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 
 
 def customer_main_menu() -> ReplyKeyboardMarkup:
@@ -50,8 +50,20 @@ def seller_main_menu() -> ReplyKeyboardMarkup:
         ["📦 Sipariş Yönetimi"],
         ["📊 Stok Yönetimi"],
         ["🚚 Kargo Yönetimi"],
+        ["🛒 Marketplace"],
         ["💰 Raporlar"],
         ["ℹ️ Yardım"],
+    ]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+
+def seller_marketplace_menu() -> ReplyKeyboardMarkup:
+    keyboard = [
+        ["🟠 Trendyol Siparişlerini Çek"],
+        ["🟡 Hepsiburada Siparişlerini Çek"],
+        ["📊 Sabah Raporu"],
+        ["⚠️ Stok Uyarıları"],
+        ["⬅️ Geri"],
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 

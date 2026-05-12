@@ -6,7 +6,7 @@ router = APIRouter()
 
 @router.get("/")
 def list_orders():
-    return list_recent_orders(50)
+    return list_recent_orders(50, include_items=True)
 
 @router.get("/{order_id}")
 def get_order(order_id: int):

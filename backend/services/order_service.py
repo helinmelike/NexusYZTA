@@ -18,33 +18,15 @@ logger = logging.getLogger(__name__)
 
 
 def _ensure_order_schema_postgres(db: Session) -> None:
-    """Ensure required order columns exist in PostgreSQL/Supabase."""
     db.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number VARCHAR"))
     db.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ"))
-    db.execute(
-        text(
-            "CREATE UNIQUE INDEX IF NOT EXISTS ix_orders_order_number ON orders (order_number)"
-        )
-    )
-    db.execute(
-        text(
-            "UPDATE orders "
-            "SET order_number = 'ORD-' || LPAD(id::text, 6, '0') "
-            "WHERE order_number IS NULL"
-        )
-    )
-    db.execute(
-        text(
-            "UPDATE orders "
-            "SET created_at = NOW() "
-            "WHERE created_at IS NULL"
-        )
-    )
+    db.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_orders_order_number ON orders (order_number)"))
+    db.execute(text("UPDATE orders SET order_number = 'ORD-' || LPAD(id::text, 6, '0') WHERE order_number IS NULL"))
+    db.execute(text("UPDATE orders SET created_at = NOW() WHERE created_at IS NULL"))
 
 
 @contextmanager
 def _session_scope():
-    """Provide a transactional scope around a series of operations."""
     db = SessionLocal()
     try:
         yield db
@@ -82,12 +64,6 @@ def _serialize_order(order: Order, include_items: bool = False) -> dict[str, Any
 
 
 def create_order(customer_name: str, product_name: str) -> dict[str, Any]:
-    """
-    Backward-compatible helper used by Telegram bot.
-
-    Creates a simple order with quantity=1 for the given customer and product.
-    If customer does not exist, it will be created with a placeholder phone.
-    """
     db = SessionLocal()
     try:
         _ensure_order_schema_postgres(db)
@@ -114,22 +90,14 @@ def create_order(customer_name: str, product_name: str) -> dict[str, Any]:
             total_amount=float(product.price),
             created_at=datetime.now(UTC),
         )
-        logger.info("[ORDER_DEBUG] Order object created")
         db.add(order)
-        logger.info("[ORDER_DEBUG] Order added to session")
         db.flush()
-
         order.order_number = f"ORD-{order.id:06d}"
-
         item = OrderItem(order_id=order.id, product_id=product.id, quantity=1, unit_price=float(product.price))
         db.add(item)
         product.stock_quantity = int(product.stock_quantity or 0) - 1
-
         db.commit()
-        logger.info("[ORDER_DEBUG] Commit success")
         db.refresh(order)
-        logger.info("[ORDER_DEBUG] Order ID = %s", order.id)
-
         return {
             "success": True,
             "message": "Order created",
@@ -142,29 +110,22 @@ def create_order(customer_name: str, product_name: str) -> dict[str, Any]:
         }
     except Exception as exc:
         db.rollback()
-        logger.exception("[ORDER_DEBUG] Order create failed before commit: %s", exc)
+        logger.exception("[ORDER_DEBUG] Order create failed: %s", exc)
         return {"success": False, "message": "Order persistence failed", "data": None}
     finally:
         db.close()
 
 
 def get_order_by_id(order_id: int) -> dict[str, Any]:
-    """Return basic order data by order id."""
     with _session_scope() as db:
         _ensure_order_schema_postgres(db)
-        order = (
-            db.query(Order)
-            .options(joinedload(Order.customer))
-            .filter(Order.id == order_id)
-            .first()
-        )
+        order = db.query(Order).options(joinedload(Order.customer)).filter(Order.id == order_id).first()
         if not order:
             return {"success": False, "message": "Order not found", "data": None}
         return {"success": True, "message": "Order fetched", "data": _serialize_order(order)}
 
 
 def get_customer_orders(customer_id: int) -> dict[str, Any]:
-    """List all orders of a given customer."""
     with _session_scope() as db:
         _ensure_order_schema_postgres(db)
         orders = (
@@ -174,12 +135,10 @@ def get_customer_orders(customer_id: int) -> dict[str, Any]:
             .order_by(Order.id.desc())
             .all()
         )
-        data = [_serialize_order(order) for order in orders]
-        return {"success": True, "message": "Customer orders fetched", "data": data}
+        return {"success": True, "message": "Customer orders fetched", "data": [_serialize_order(o) for o in orders]}
 
 
 def cancel_order(order_id: int) -> dict[str, Any]:
-    """Cancel order if not already shipped."""
     with _session_scope() as db:
         _ensure_order_schema_postgres(db)
         order = (
@@ -190,36 +149,29 @@ def cancel_order(order_id: int) -> dict[str, Any]:
         )
         if not order:
             return {"success": False, "message": "Order not found", "data": None}
-
         if order.status == "shipped":
             return {"success": False, "message": "Shipped order cannot be cancelled", "data": None}
-
         for item in order.items:
             if item.product:
                 item.product.stock_quantity = int(item.product.stock_quantity or 0) + int(item.quantity)
-
         order.status = "cancelled"
         return {"success": True, "message": "Order cancelled", "data": _serialize_order(order)}
 
 
-def list_recent_orders(limit: int = 10) -> dict[str, Any]:
+def list_recent_orders(limit: int = 10, include_items: bool = False) -> dict[str, Any]:
     """List most recent orders."""
     safe_limit = max(1, min(int(limit), 100))
     with _session_scope() as db:
         _ensure_order_schema_postgres(db)
-        orders = (
-            db.query(Order)
-            .options(joinedload(Order.customer))
-            .order_by(Order.id.desc())
-            .limit(safe_limit)
-            .all()
-        )
-        data = [_serialize_order(order) for order in orders]
+        query = db.query(Order).options(joinedload(Order.customer))
+        if include_items:
+            query = query.options(joinedload(Order.items).joinedload(OrderItem.product))
+        orders = query.order_by(Order.id.desc()).limit(safe_limit).all()
+        data = [_serialize_order(order, include_items=include_items) for order in orders]
         return {"success": True, "message": "Recent orders fetched", "data": data}
 
 
 def get_order_detail(order_id: int) -> dict[str, Any]:
-    """Return detailed order payload with nested items."""
     with _session_scope() as db:
         _ensure_order_schema_postgres(db)
         order = (
@@ -233,8 +185,4 @@ def get_order_detail(order_id: int) -> dict[str, Any]:
         )
         if not order:
             return {"success": False, "message": "Order not found", "data": None}
-        return {
-            "success": True,
-            "message": "Order detail fetched",
-            "data": _serialize_order(order, include_items=True),
-        }
+        return {"success": True, "message": "Order detail fetched", "data": _serialize_order(order, include_items=True)}
