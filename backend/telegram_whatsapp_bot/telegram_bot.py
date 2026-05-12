@@ -278,7 +278,7 @@ def _agent_chat_http(message: str, user_id: int) -> tuple[bool, str]:
         except Exception:
             logger.exception("agent.request_failed")
 
-    return False, "Lutfen biraz sonra tekrar deneyin."
+    return False, "Su anda yanit veremiyorum. Lutfen biraz sonra tekrar deneyin."
 
 
 def _create_ticket_from_session(customer_id: int, telegram_user_id: int, sess: UserSession) -> tuple[bool, str]:
@@ -651,9 +651,9 @@ async def _state_support_agent(update: Update, sess: UserSession) -> None:
 
     ok_ticket, ticket_msg = _create_ticket_from_session(customer.id, update.message.from_user.id, sess)
     if ok_ticket:
-        await _reply(update, ticket_msg, customer_support_menu())
+        await _reply(update, f"Su anda yanit veremiyorum. {ticket_msg}", customer_support_menu())
     else:
-        await _error(update, ticket_msg, customer_support_menu())
+        await _error(update, f"Su anda yanit veremiyorum. {ticket_msg}", customer_support_menu())
 
 
 async def _state_stock_product_id(update: Update, sess: UserSession) -> None:
@@ -1089,6 +1089,29 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await query.edit_message_text(f"{'' if ok else ''} {msg}")
     elif query.data == CB_TICKET_CANCEL:
         await query.edit_message_text("Tamam, destek menusunden devam edebilirsiniz.")
+
+
+async def run_telegram_bot_async() -> None:
+    if not TELEGRAM_TOKEN or TELEGRAM_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN":
+        raise RuntimeError("TELEGRAM_BOT_TOKEN bulunamadi.")
+    application = (
+        ApplicationBuilder()
+        .token(TELEGRAM_TOKEN)
+        .post_init(_post_init)
+        .post_shutdown(_post_shutdown)
+        .build()
+    )
+    application.add_handler(CommandHandler("start", cmd_start))
+    application.add_handler(CommandHandler("menu", cmd_start))
+    application.add_handler(CallbackQueryHandler(callback_handler))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    # Sonsuza kadar çalış
+    import asyncio
+    while True:
+        await asyncio.sleep(3600)
 
 
 def run_telegram_bot() -> None:
