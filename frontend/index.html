@@ -1,806 +1,1516 @@
 <!doctype html>
 <html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexus — Kooperatif Paneli</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#F0F2F8;--surface:#FFFFFF;--border:#E2E6F0;
-  --text:#0F1623;--text-2:#4A5568;--text-3:#94A3B8;
-  --green:#00C48C;--green-light:#E6FAF5;--green-dark:#00A376;
-  --blue:#3B82F6;--blue-light:#EFF6FF;
-  --orange:#FF8C42;--orange-light:#FFF4ED;
-  --red:#EF4444;--red-light:#FEF2F2;
-  --purple:#8B5CF6;--purple-light:#F5F3FF;
-  --yellow:#F59E0B;--yellow-light:#FFFBEB;
-  --radius:12px;--radius-lg:18px;
-  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
-  --shadow-lg:0 8px 32px rgba(0,0,0,.10);
-}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;font-size:14px}
-#sidebar{width:240px;background:var(--text);display:flex;flex-direction:column;flex-shrink:0;padding:0 0 16px}
-.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sidebar-logo-title{font-size:18px;font-weight:800;color:#fff}
-.sidebar-logo-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
-.sidebar-nav{padding:16px 12px;flex:1;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
-.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;padding:12px 8px 6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:rgba(255,255,255,.55);transition:all .15s;border:none;background:none;width:100%;text-align:left}
-.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
-.nav-item.active{background:var(--green);color:#fff;font-weight:700}
-.nav-icon{width:17px;height:17px;flex-shrink:0;opacity:.7}
-.nav-item.active .nav-icon{opacity:1}
-.nav-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:auto}
-.sidebar-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08)}
-.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:7px;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,196,140,.4)}50%{box-shadow:0 0 0 6px rgba(0,196,140,0)}}
-#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{padding:0 28px;height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.topbar-title{font-size:16px;font-weight:700}
-.btn{padding:8px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text-2);font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.btn:hover{border-color:var(--text-3);background:var(--bg)}
-.btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
-.btn-primary:hover{background:var(--green-dark);border-color:var(--green-dark)}
-.btn-danger{background:var(--red-light);color:var(--red);border-color:transparent}
-.btn-sm{padding:5px 11px;font-size:12px}
-.page{display:none;flex:1;overflow-y:auto;padding:24px 28px}
-.page.active{display:block}
-.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px}
-.page-title{font-size:22px;font-weight:800;letter-spacing:-.4px}
-.page-sub{font-size:12.5px;color:var(--text-3);margin-top:3px;font-weight:500}
-.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow)}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.card-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
-.stat-card{background:var(--surface);border-radius:var(--radius-lg);padding:18px 20px;border:1.5px solid var(--border);box-shadow:var(--shadow)}
-.stat-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:22px}
-.stat-icon.green{background:var(--green-light)}
-.stat-icon.blue{background:var(--blue-light)}
-.stat-icon.orange{background:var(--orange-light)}
-.stat-icon.red{background:var(--red-light)}
-.stat-icon.purple{background:var(--purple-light)}
-.stat-label{font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.stat-value{font-size:30px;font-weight:800;letter-spacing:-.5px}
-.stat-sub{font-size:12px;color:var(--text-3);margin-top:4px}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;border-bottom:1.5px solid var(--border);background:var(--bg)}
-td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text-2);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#F8FAFF}
-.table-wrap{border-radius:var(--radius-lg);overflow:hidden;border:1.5px solid var(--border);box-shadow:var(--shadow)}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.badge-green{background:var(--green-light);color:#00875A}
-.badge-blue{background:var(--blue-light);color:#1D4ED8}
-.badge-orange{background:var(--orange-light);color:#C05621}
-.badge-red{background:var(--red-light);color:var(--red)}
-.badge-purple{background:var(--purple-light);color:#6D28D9}
-.badge-yellow{background:var(--yellow-light);color:#B45309}
-.badge-gray{background:var(--bg);color:var(--text-3)}
-.dash-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-.dash-row:last-child{border-bottom:none}
-.dash-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;font-weight:700}
-.dash-info{flex:1;min-width:0}
-.dash-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dash-sub{font-size:11.5px;color:var(--text-3);margin-top:1px}
-.dash-right{font-size:13px;font-weight:700;white-space:nowrap}
-.cargo-timeline{display:flex;flex-direction:column;gap:0}
-.cargo-step{display:flex;align-items:flex-start;gap:14px;padding:12px 0;position:relative}
-.cargo-step:not(:last-child)::after{content:'';position:absolute;left:17px;top:42px;width:2px;height:calc(100% - 22px);background:var(--border)}
-.cargo-dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;z-index:1;border:2px solid var(--border);background:var(--surface)}
-.cargo-dot.done{background:var(--green-light);border-color:var(--green)}
-.cargo-dot.active{background:var(--blue-light);border-color:var(--blue);animation:ringPulse 2s infinite}
-@keyframes ringPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3)}50%{box-shadow:0 0 0 8px rgba(59,130,246,0)}}
-.cargo-dot.pending{opacity:.4}
-.cargo-step-label{font-size:13.5px;font-weight:600}
-.cargo-step-sub{font-size:12px;color:var(--text-3);margin-top:2px}
-.form-group{margin-bottom:14px}
-.form-label{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px;display:block}
-.form-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:13.5px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s}
-.form-input:focus{border-color:var(--green)}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.alert{padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-top:10px;border:1px solid transparent}
-.alert-success{background:var(--green-light);color:#00875A;border-color:#A7F3D0}
-.alert-warn{background:var(--yellow-light);color:#92400E;border-color:#FDE68A}
-.alert-danger{background:var(--red-light);color:var(--red);border-color:#FCA5A5}
-#chat-messages{height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 0 12px}
-.msg{display:flex;gap:9px;align-items:flex-start}
-.msg.user{flex-direction:row-reverse}
-.msg-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700}
-.msg-avatar.bot{background:var(--green-light);color:var(--green-dark)}
-.msg-avatar.user{background:var(--blue-light);color:var(--blue)}
-.msg-bubble{padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.6;max-width:78%;white-space:pre-wrap}
-.msg-bubble.bot{background:var(--bg);border-radius:4px 14px 14px 14px;color:var(--text)}
-.msg-bubble.user{background:var(--blue);color:#fff;border-radius:14px 4px 14px 14px}
-.chat-input-row{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1.5px solid var(--border)}
-.chat-input-row textarea{flex:1;resize:none;font-family:inherit;font-size:13.5px;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);outline:none}
-.chat-input-row textarea:focus{border-color:var(--green);background:#fff}
-.chip{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--surface);color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .15s}
-.chip:hover{background:var(--green-light);border-color:var(--green);color:var(--green-dark)}
-.quick-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-.mp-card{background:var(--surface);border-radius:var(--radius-lg);padding:20px;border:1.5px solid var(--border);box-shadow:var(--shadow)}
-.mp-logo{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;flex-shrink:0}
-.ticket-card{background:var(--surface);border-radius:var(--radius-lg);padding:16px 18px;border:1.5px solid var(--border);box-shadow:var(--shadow);display:flex;gap:14px;align-items:flex-start;transition:border-color .15s}
-.ticket-card:hover{border-color:var(--blue)}
-.ticket-card.urgent{border-left:4px solid var(--red)}
-.ticket-card.medium{border-left:4px solid var(--orange)}
-.ticket-card.low{border-left:4px solid var(--green)}
-.ticket-avatar{width:42px;height:42px;border-radius:12px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0}
-.ticket-name{font-size:13.5px;font-weight:700}
-.ticket-msg{font-size:12.5px;color:var(--text-2);line-height:1.5;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ticket-footer{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
-.ticket-time{font-size:11px;color:var(--text-3)}
-.ticket-tg{font-size:12px;color:var(--blue);text-decoration:none;font-weight:600}
-.ticket-tg:hover{text-decoration:underline}
-#ticket-popup{display:none;position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:14px 18px;border-radius:14px;box-shadow:var(--shadow-lg);align-items:center;gap:12px;z-index:1000;font-size:13.5px;font-weight:500;max-width:300px}
-#ticket-popup.show{display:flex;animation:slideUp .3s ease}
-@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexus — Kooperatif Paneli</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="sidebar">
-  <div class="sidebar-logo">
-    <div class="sidebar-logo-title">🌿 Nexus</div>
-    <div class="sidebar-logo-sub">Kooperatif Paneli</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">Ana Menü</div>
-    <button class="nav-item active" onclick="showPage('dashboard')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Dashboard
-    </button>
-    <button class="nav-item" onclick="showPage('orders')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Siparişler
-    </button>
-    <button class="nav-item" onclick="showPage('cargo')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Kargo Takip
-    </button>
-    <button class="nav-item" onclick="showPage('stock')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Stok Yönetimi
-    </button>
-    <button class="nav-item" onclick="showPage('customers')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Müşteriler
-    </button>
-    <div class="nav-section">Satış</div>
-    <button class="nav-item" onclick="showPage('marketplace')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Marketplace
-    </button>
-    <button class="nav-item" onclick="showPage('reports')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Raporlar
-    </button>
-    <button class="nav-item" onclick="showPage('chat')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>AI Asistan
-    </button>
-    <div class="nav-section">Destek</div>
-    <button class="nav-item" id="nav-tickets" onclick="showPage('tickets')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12"/><path d="M1.61 3.4A2 2 0 013.6 1.22h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.8"/></svg>
-      Destek Talepleri
-      <span id="ticket-badge" style="display:none" class="nav-badge">0</span>
-    </button>
-  </nav>
-  <div class="sidebar-footer">
-    <span class="status-dot"></span>
-    <span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:500">Sistem aktif</span>
-  </div>
-</div>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #f0f2f8;
+        --surface: #ffffff;
+        --border: #e2e6f0;
+        --text: #0f1623;
+        --text-2: #4a5568;
+        --text-3: #94a3b8;
+        --green: #00c48c;
+        --green-light: #e6faf5;
+        --green-dark: #00a376;
+        --blue: #3b82f6;
+        --blue-light: #eff6ff;
+        --orange: #ff8c42;
+        --orange-light: #fff4ed;
+        --red: #ef4444;
+        --red-light: #fef2f2;
+        --purple: #8b5cf6;
+        --purple-light: #f5f3ff;
+        --yellow: #f59e0b;
+        --yellow-light: #fffbeb;
+        --radius: 12px;
+        --radius-lg: 18px;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        font-size: 14px;
+      }
+      #sidebar {
+        width: 240px;
+        background: var(--text);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        padding: 0 0 16px;
+      }
+      .sidebar-logo {
+        padding: 24px 20px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .sidebar-logo-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #fff;
+      }
+      .sidebar-logo-sub {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.35);
+        margin-top: 2px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .sidebar-nav {
+        padding: 16px 12px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        overflow-y: auto;
+      }
+      .nav-section {
+        font-size: 10px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.3);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 12px 8px 6px;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.55);
+        transition: all 0.15s;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+      }
+      .nav-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+      .nav-item.active {
+        background: var(--green);
+        color: #fff;
+        font-weight: 700;
+      }
+      .nav-icon {
+        width: 17px;
+        height: 17px;
+        flex-shrink: 0;
+        opacity: 0.7;
+      }
+      .nav-item.active .nav-icon {
+        opacity: 1;
+      }
+      .nav-badge {
+        background: var(--red);
+        color: #fff;
+        border-radius: 10px;
+        padding: 1px 7px;
+        font-size: 10px;
+        font-weight: 700;
+        margin-left: auto;
+      }
+      .sidebar-footer {
+        padding: 14px 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        display: inline-block;
+        margin-right: 7px;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 196, 140, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 6px rgba(0, 196, 140, 0);
+        }
+      }
+      #main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .topbar {
+        padding: 0 28px;
+        height: 60px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .topbar-title {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .btn {
+        padding: 8px 16px;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1.5px solid var(--border);
+        background: var(--surface);
+        color: var(--text-2);
+        font-family: inherit;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn:hover {
+        border-color: var(--text-3);
+        background: var(--bg);
+      }
+      .btn-primary {
+        background: var(--green);
+        color: #fff;
+        border-color: var(--green);
+      }
+      .btn-primary:hover {
+        background: var(--green-dark);
+        border-color: var(--green-dark);
+      }
+      .btn-danger {
+        background: var(--red-light);
+        color: var(--red);
+        border-color: transparent;
+      }
+      .btn-sm {
+        padding: 5px 11px;
+        font-size: 12px;
+      }
+      .page {
+        display: none;
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 28px;
+      }
+      .page.active {
+        display: block;
+      }
+      .page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+      .page-title {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+      }
+      .page-sub {
+        font-size: 12.5px;
+        color: var(--text-3);
+        margin-top: 3px;
+        font-weight: 500;
+      }
+      .card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .card-title {
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+      .stat-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 18px 20px;
+        border: 1.5px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        font-size: 22px;
+      }
+      .stat-icon.green {
+        background: var(--green-light);
+      }
+      .stat-icon.blue {
+        background: var(--blue-light);
+      }
+      .stat-icon.orange {
+        background: var(--orange-light);
+      }
+      .stat-icon.red {
+        background: var(--red-light);
+      }
+      .stat-icon.purple {
+        background: var(--purple-light);
+      }
+      .stat-label {
+        font-size: 11px;
+        color: var(--text-3);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 6px;
+      }
+      .stat-value {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+      .stat-sub {
+        font-size: 12px;
+        color: var(--text-3);
+        margin-top: 4px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th {
+        text-align: left;
+        padding: 10px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        border-bottom: 1.5px solid var(--border);
+        background: var(--bg);
+      }
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-2);
+        vertical-align: middle;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:hover td {
+        background: #f8faff;
+      }
+      .table-wrap {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        border: 1.5px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .badge-green {
+        background: var(--green-light);
+        color: #00875a;
+      }
+      .badge-blue {
+        background: var(--blue-light);
+        color: #1d4ed8;
+      }
+      .badge-orange {
+        background: var(--orange-light);
+        color: #c05621;
+      }
+      .badge-red {
+        background: var(--red-light);
+        color: var(--red);
+      }
+      .badge-purple {
+        background: var(--purple-light);
+        color: #6d28d9;
+      }
+      .badge-yellow {
+        background: var(--yellow-light);
+        color: #b45309;
+      }
+      .badge-gray {
+        background: var(--bg);
+        color: var(--text-3);
+      }
+      .dash-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .dash-row:last-child {
+        border-bottom: none;
+      }
+      .dash-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+        font-weight: 700;
+      }
+      .dash-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .dash-name {
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .dash-sub {
+        font-size: 11.5px;
+        color: var(--text-3);
+        margin-top: 1px;
+      }
+      .dash-right {
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .cargo-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .cargo-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 12px 0;
+        position: relative;
+      }
+      .cargo-step:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        left: 17px;
+        top: 42px;
+        width: 2px;
+        height: calc(100% - 22px);
+        background: var(--border);
+      }
+      .cargo-dot {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+        z-index: 1;
+        border: 2px solid var(--border);
+        background: var(--surface);
+      }
+      .cargo-dot.done {
+        background: var(--green-light);
+        border-color: var(--green);
+      }
+      .cargo-dot.active {
+        background: var(--blue-light);
+        border-color: var(--blue);
+        animation: ringPulse 2s infinite;
+      }
+      @keyframes ringPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+        }
+      }
+      .cargo-dot.pending {
+        opacity: 0.4;
+      }
+      .cargo-step-label {
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .cargo-step-sub {
+        font-size: 12px;
+        color: var(--text-3);
+        margin-top: 2px;
+      }
+      .form-group {
+        margin-bottom: 14px;
+      }
+      .form-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-2);
+        margin-bottom: 6px;
+        display: block;
+      }
+      .form-input {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1.5px solid var(--border);
+        border-radius: 9px;
+        font-family: inherit;
+        font-size: 13.5px;
+        color: var(--text);
+        background: var(--surface);
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .form-input:focus {
+        border-color: var(--green);
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .alert {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: 10px;
+        border: 1px solid transparent;
+      }
+      .alert-success {
+        background: var(--green-light);
+        color: #00875a;
+        border-color: #a7f3d0;
+      }
+      .alert-warn {
+        background: var(--yellow-light);
+        color: #92400e;
+        border-color: #fde68a;
+      }
+      .alert-danger {
+        background: var(--red-light);
+        color: var(--red);
+        border-color: #fca5a5;
+      }
+      #chat-messages {
+        height: 360px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 12px;
+      }
+      .msg {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+      }
+      .msg.user {
+        flex-direction: row-reverse;
+      }
+      .msg-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .msg-avatar.bot {
+        background: var(--green-light);
+        color: var(--green-dark);
+      }
+      .msg-avatar.user {
+        background: var(--blue-light);
+        color: var(--blue);
+      }
+      .msg-bubble {
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 13.5px;
+        line-height: 1.6;
+        max-width: 78%;
+        white-space: pre-wrap;
+      }
+      .msg-bubble.bot {
+        background: var(--bg);
+        border-radius: 4px 14px 14px 14px;
+        color: var(--text);
+      }
+      .msg-bubble.user {
+        background: var(--blue);
+        color: #fff;
+        border-radius: 14px 4px 14px 14px;
+      }
+      .chat-input-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1.5px solid var(--border);
+      }
+      .chat-input-row textarea {
+        flex: 1;
+        resize: none;
+        font-family: inherit;
+        font-size: 13.5px;
+        padding: 10px 13px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg);
+        color: var(--text);
+        outline: none;
+      }
+      .chat-input-row textarea:focus {
+        border-color: var(--green);
+        background: #fff;
+      }
+      .chip {
+        padding: 6px 13px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1.5px solid var(--border);
+        background: var(--surface);
+        color: var(--text-2);
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s;
+      }
+      .chip:hover {
+        background: var(--green-light);
+        border-color: var(--green);
+        color: var(--green-dark);
+      }
+      .quick-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .mp-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        border: 1.5px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .mp-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 900;
+        flex-shrink: 0;
+      }
+      .ticket-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 16px 18px;
+        border: 1.5px solid var(--border);
+        box-shadow: var(--shadow);
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        transition: border-color 0.15s;
+      }
+      .ticket-card:hover {
+        border-color: var(--blue);
+      }
+      .ticket-card.urgent {
+        border-left: 4px solid var(--red);
+      }
+      .ticket-card.medium {
+        border-left: 4px solid var(--orange);
+      }
+      .ticket-card.low {
+        border-left: 4px solid var(--green);
+      }
+      .ticket-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: var(--blue-light);
+        color: var(--blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .ticket-name {
+        font-size: 13.5px;
+        font-weight: 700;
+      }
+      .ticket-msg {
+        font-size: 12.5px;
+        color: var(--text-2);
+        line-height: 1.5;
+        margin-top: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .ticket-footer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+      .ticket-time {
+        font-size: 11px;
+        color: var(--text-3);
+      }
+      .ticket-tg {
+        font-size: 12px;
+        color: var(--blue);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .ticket-tg:hover {
+        text-decoration: underline;
+      }
+      #ticket-popup {
+        display: none;
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: var(--text);
+        color: #fff;
+        padding: 14px 18px;
+        border-radius: 14px;
+        box-shadow: var(--shadow-lg);
+        align-items: center;
+        gap: 12px;
+        z-index: 1000;
+        font-size: 13.5px;
+        font-weight: 500;
+        max-width: 300px;
+      }
+      #ticket-popup.show {
+        display: flex;
+        animation: slideUp 0.3s ease;
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(16px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-title">🌿 Nexus</div>
+        <div class="sidebar-logo-sub">Kooperatif Paneli</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Ana Menü</div>
+        <button class="nav-item active" onclick="showPage('dashboard')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" /></svg
+          >Dashboard
+        </button>
+        <button class="nav-item" onclick="showPage('orders')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" /></svg
+          >Siparişler
+        </button>
+        <button class="nav-item" onclick="showPage('cargo')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="1" y="3" width="15" height="13" rx="1" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" /></svg
+          >Kargo Takip
+        </button>
+        <button class="nav-item" onclick="showPage('stock')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
+            /></svg
+          >Stok Yönetimi
+        </button>
+        <button class="nav-item" onclick="showPage('customers')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" /></svg
+          >Müşteriler
+        </button>
+        <div class="nav-section">Satış</div>
+        <button class="nav-item" onclick="showPage('marketplace')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg
+          >Marketplace
+        </button>
+        <button class="nav-item" onclick="showPage('reports')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" /></svg
+          >Raporlar
+        </button>
+        <button class="nav-item" onclick="showPage('chat')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+            /></svg
+          >AI Asistan
+        </button>
+        <div class="nav-section">Destek</div>
+        <button class="nav-item" id="nav-tickets" onclick="showPage('tickets')">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12"
+            />
+            <path
+              d="M1.61 3.4A2 2 0 013.6 1.22h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.8"
+            />
+          </svg>
+          Destek Talepleri
+          <span id="ticket-badge" style="display: none" class="nav-badge"
+            >0</span
+          >
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span
+          style="
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 500;
+          "
+          >Sistem aktif</span
+        >
+      </div>
+    </div>
 
     <div id="main">
       <div class="topbar">
         <span class="topbar-title" id="page-title">Dashboard</span>
-        <button class="btn" onclick="refreshPage()">↻ Yenile</button>
-      </div>
-<div id="main">
-  <div class="topbar">
-    <span class="topbar-title" id="page-title">Dashboard</span>
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:12.5px;color:var(--text-3)" id="topbar-time"></span>
-      <button class="btn" onclick="refreshPage()">↻ Yenile</button>
-    </div>
-  </div>
-
-  <!-- DASHBOARD -->
-  <div class="page active" id="page-dashboard">
-    <div class="page-header">
-      <div><div class="page-title" id="dash-greeting">Günaydın 👋</div><div class="page-sub" id="dash-date"></div></div>
-      <button class="btn btn-primary" onclick="loadDashboard()">↻ Yenile</button>
-    </div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon green">📦</div><div class="stat-label">Bekleyen Sipariş</div><div class="stat-value" id="dm-pending">—</div><div class="stat-sub">hazırlanmayı bekliyor</div></div>
-      <div class="stat-card"><div class="stat-icon blue">🚚</div><div class="stat-label">Kargoda</div><div class="stat-value" id="dm-shipped">—</div><div class="stat-sub">yolda olan paket</div></div>
-      <div class="stat-card"><div class="stat-icon orange">⚠️</div><div class="stat-label">Kritik Stok</div><div class="stat-value" id="dm-lowstock">—</div><div class="stat-sub">ürün kritik seviyede</div></div>
-      <div class="stat-card"><div class="stat-icon red">📞</div><div class="stat-label">Açık Destek</div><div class="stat-value" id="dm-tickets">—</div><div class="stat-sub">yanıt bekliyor</div></div>
-    </div>
-    <div class="grid-2">
-      <div class="card"><div class="card-header"><div class="card-title">📋 Bekleyen Siparişler</div><span style="font-size:12px;color:var(--text-3)" id="dm-pending-count"></span></div><div id="dash-orders-list" style="color:var(--text-3);font-size:13px">Yükleniyor...</div></div>
-      <div class="card"><div class="card-header"><div class="card-title">📦 Hazırlanacak Paketler</div></div><div id="dash-packages-list" style="color:var(--text-3);font-size:13px">Yükleniyor...</div></div>
-      <div class="card"><div class="card-header"><div class="card-title">🚚 Bugün Kargoya Verilecekler</div><span style="font-size:12px;color:var(--text-3)" id="dm-cargo-count"></span></div><div id="dash-cargo-list" style="color:var(--text-3);font-size:13px">Yükleniyor...</div></div>
-      <div class="card"><div class="card-header"><div class="card-title">⚠️ Kritik Stok Uyarıları</div><span style="font-size:12px;color:var(--text-3)" id="dm-stock-count"></span></div><div id="dash-stock-list" style="color:var(--text-3);font-size:13px">Yükleniyor...</div></div>
-    </div>
-  </div>
-
-      <!-- CHAT -->
-      <div class="page" id="page-chat">
-        <div style="max-width: 800px">
-          <div class="card">
-            <div class="quick-btns">
-              <button class="quick-btn" onclick="quickSend('ürünleri listele')">
-                📦 Ürünleri listele
-              </button>
-              <button
-                class="quick-btn"
-                onclick="quickSend('son siparişleri göster')"
-              >
-                🛒 Son siparişler
-              </button>
-              <button
-                class="quick-btn"
-                onclick="quickSend('stoku az olan ürünler var mı')"
-              >
-                ⚠️ Kritik stok
-              </button>
-              <button
-                class="quick-btn"
-                onclick="quickSend('sipariş 1in detayını göster')"
-              >
-                🔍 Sipariş detayı
-              </button>
-              <button
-                class="quick-btn"
-                onclick="quickSend('siparişleri excele aktar')"
-              >
-                📊 Excel export
-              </button>
-              <button
-                class="quick-btn"
-                onclick="quickSend('müşteri 05320000001i bul')"
-              >
-                👤 Müşteri ara
-              </button>
-            </div>
-            <div id="chat-messages">
-              <div class="msg">
-                <div class="msg-avatar bot">🌿</div>
-                <div class="msg-bubble bot">
-                  Merhaba! Ben kooperatif asistanınım. Stok kontrolü, sipariş
-                  yönetimi, kargo takibi ve Excel export konularında yardımcı
-                  olabilirim. Ne yapmak istersiniz?
-                </div>
-              </div>
-            </div>
-            <div class="chat-input-row">
-              <textarea
-                id="chat-input"
-                rows="2"
-                placeholder="Mesajınızı yazın... (Enter gönderin, Shift+Enter satır atlar)"
-                onkeydown="chatKey(event)"
-              ></textarea>
-              <button
-                class="btn btn-primary"
-                onclick="sendChat()"
-                id="chat-send-btn"
-              >
-                Gönder
-              </button>
-            </div>
-          </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span
+            style="font-size: 12.5px; color: var(--text-3)"
+            id="topbar-time"
+          ></span>
+          <button class="btn" onclick="refreshPage()">↻ Yenile</button>
         </div>
       </div>
-  <!-- SİPARİŞLER -->
-  <div class="page" id="page-orders">
-    <div class="page-header"><div><div class="page-title">Siparişler</div><div class="page-sub">Tüm siparişleri görüntüle ve yönet</div></div><button class="btn btn-primary" onclick="loadOrders()">↻ Yenile</button></div>
-    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
-      <div class="stat-card"><div class="stat-icon blue">🆕</div><div class="stat-label">Bekleyen</div><div class="stat-value" id="o-pending">—</div></div>
-      <div class="stat-card"><div class="stat-icon orange">⚙️</div><div class="stat-label">Hazırlanan</div><div class="stat-value" id="o-preparing">—</div></div>
-      <div class="stat-card"><div class="stat-icon purple">🚚</div><div class="stat-label">Kargoda</div><div class="stat-value" id="o-shipped">—</div></div>
-      <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-label">Teslim</div><div class="stat-value" id="o-delivered">—</div></div>
-      <div class="stat-card"><div class="stat-icon red">❌</div><div class="stat-label">İptal</div><div class="stat-value" id="o-cancelled">—</div></div>
-    </div>
-    <div class="table-wrap">
-      <table><thead><tr><th>Sipariş No</th><th>Müşteri</th><th>Tutar</th><th>Kanal</th><th>Durum</th><th>Tarih</th><th>İşlem</th></tr></thead>
-      <tbody id="orders-tbody"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Yükleniyor...</td></tr></tbody></table>
-    </div>
-  </div>
 
-      <!-- PRODUCTS -->
-      <div class="page" id="page-products">
-        <div class="grid-4">
-          <div class="card-sm">
-            <div class="stat-label">Toplam Ürün</div>
-            <div class="stat-value" id="stat-total-products">—</div>
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title" id="dash-greeting">Günaydın 👋</div>
+            <div class="page-sub" id="dash-date"></div>
           </div>
-          <div class="card-sm">
-            <div class="stat-label">Kritik Stok</div>
-            <div
-              class="stat-value"
-              style="color: var(--danger)"
-              id="stat-low-stock"
-            >
-              —
-            </div>
-          </div>
-          <div class="card-sm">
-            <div class="stat-label">Toplam Stok</div>
-            <div class="stat-value" id="stat-total-stock">—</div>
-          </div>
-          <div class="card-sm">
-            <div class="stat-label">Ort. Fiyat</div>
-            <div class="stat-value" id="stat-avg-price">—</div>
-          </div>
-        </div>
-        <div class="card" style="margin-bottom: 16px">
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin-bottom: 16px;
-            "
-          >
-            <div class="section-title" style="margin: 0">Ürün Listesi</div>
-            <button
-              class="btn btn-primary"
-              onclick="
-                quickSend('stok güncelle');
-                showPage('chat');
-              "
-            >
-              + AI ile Güncelle
-            </button>
-          </div>
-          <table id="products-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Ürün Adı</th>
-                <th>Fiyat</th>
-                <th>Stok</th>
-                <th>Durum</th>
-                <th>İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td
-                  colspan="6"
-                  style="
-                    text-align: center;
-                    color: var(--text-3);
-                    padding: 24px;
-                  "
-                >
-                  Yükleniyor...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="card">
-          <div class="section-title">Yeni Ürün Ekle</div>
-          <div class="form-row-3">
-            <div class="form-group">
-              <label class="form-label">Ürün Adı</label>
-              <input
-                class="form-input"
-                id="new-product-name"
-                placeholder="Örn: Zeytinyağı"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Fiyat (₺)</label>
-              <input
-                class="form-input"
-                id="new-product-price"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Başlangıç Stok (adet)</label>
-              <input
-                class="form-input"
-                id="new-product-stock"
-                type="number"
-                min="0"
-                placeholder="0"
-              />
-            </div>
-          </div>
-          <button class="btn btn-primary" onclick="addProduct()">
-            + Ürün Ekle
+          <button class="btn btn-primary" onclick="loadDashboard()">
+            ↻ Yenile
           </button>
-          <div id="add-product-result" style="margin-top: 12px"></div>
         </div>
-      </div>
-  <!-- KARGO -->
-  <div class="page" id="page-cargo">
-    <div class="page-header"><div><div class="page-title">Kargo Takip</div><div class="page-sub">Sipariş numarasıyla kargo durumunu sorgula</div></div></div>
-    <div class="grid-2" style="align-items:start">
-      <div class="card">
-        <div class="card-header"><div class="card-title">🔍 Kargo Sorgula</div></div>
-        <div class="form-group">
-          <label class="form-label">Sipariş Numarası</label>
-          <div style="display:flex;gap:8px"><input class="form-input" id="cargo-track-input" placeholder="Örn: ORD-000001" onkeydown="if(event.key==='Enter')trackCargo()"><button class="btn btn-primary" onclick="trackCargo()">Sorgula</button></div>
-        </div>
-        <div id="cargo-result"></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">⚙️ Durum Güncelle</div></div>
-        <div class="form-group"><label class="form-label">Sipariş ID</label><input class="form-input" id="cargo-order-id" placeholder="Örn: 1" type="number"></div>
-        <div class="form-group"><label class="form-label">Yeni Durum</label>
-          <select class="form-input" id="cargo-new-status">
-            <option value="pending">⏳ Bekliyor</option>
-            <option value="preparing">⚙️ Hazırlanıyor</option>
-            <option value="shipped">🚚 Kargoya Verildi</option>
-            <option value="delivered">✅ Teslim Edildi</option>
-            <option value="cancelled">❌ İptal Edildi</option>
-          </select>
-        </div>
-        <button class="btn btn-primary" style="width:100%" onclick="updateCargoStatus()">Güncelle</button>
-        <div id="cargo-update-result"></div>
-      </div>
-    </div>
-  </div>
-
-      <!-- ORDERS -->
-      <div class="page" id="page-orders">
-        <div class="grid-4">
-          <div class="card-sm">
-            <div class="stat-label">Toplam Sipariş</div>
-            <div class="stat-value" id="stat-total-orders">—</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon green">📦</div>
+            <div class="stat-label">Bekleyen Sipariş</div>
+            <div class="stat-value" id="dm-pending">—</div>
+            <div class="stat-sub">hazırlanmayı bekliyor</div>
           </div>
-          <div class="card-sm">
-            <div class="stat-label">Bekleyen</div>
-            <div
-              class="stat-value"
-              style="color: var(--warn)"
-              id="stat-pending"
-            >
-              —
-            </div>
-          </div>
-          <div class="card-sm">
+          <div class="stat-card">
+            <div class="stat-icon blue">🚚</div>
             <div class="stat-label">Kargoda</div>
-            <div
-              class="stat-value"
-              style="color: var(--info)"
-              id="stat-shipped"
-            >
-              —
-            </div>
+            <div class="stat-value" id="dm-shipped">—</div>
+            <div class="stat-sub">yolda olan paket</div>
           </div>
-          <div class="card-sm">
-            <div class="stat-label">Toplam Ciro</div>
-            <div class="stat-value" id="stat-revenue">—</div>
+          <div class="stat-card">
+            <div class="stat-icon orange">⚠️</div>
+            <div class="stat-label">Kritik Stok</div>
+            <div class="stat-value" id="dm-lowstock">—</div>
+            <div class="stat-sub">ürün kritik seviyede</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">📞</div>
+            <div class="stat-label">Açık Destek</div>
+            <div class="stat-value" id="dm-tickets">—</div>
+            <div class="stat-sub">yanıt bekliyor</div>
           </div>
         </div>
-        <div class="card">
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin-bottom: 16px;
-            "
-          >
-            <div class="section-title" style="margin: 0">Siparişler</div>
-            <button
-              class="btn btn-primary"
-              onclick="
-                quickSend('yeni sipariş oluştur');
-                showPage('chat');
-              "
-            >
-              + AI ile Ekle
-            </button>
-          </div>
-          <table id="orders-table">
-            <thead>
-              <tr>
-                <th>Sipariş #</th>
-                <th>Müşteri</th>
-                <th>Durum</th>
-                <th>Toplam</th>
-                <th>İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td
-                  colspan="5"
-                  style="
-                    text-align: center;
-                    color: var(--text-3);
-                    padding: 24px;
-                  "
-                >
-                  Yükleniyor...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-  <!-- STOK -->
-  <div class="page" id="page-stock">
-    <div class="page-header"><div><div class="page-title">Stok Yönetimi</div><div class="page-sub">Ürünleri ekle, düzenle, stok durumunu takip et</div></div><button class="btn btn-primary" onclick="loadProducts()">↻ Yenile</button></div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon green">📦</div><div class="stat-label">Toplam Ürün</div><div class="stat-value" id="stat-total-products">—</div></div>
-      <div class="stat-card"><div class="stat-icon red">⚠️</div><div class="stat-label">Kritik Stok</div><div class="stat-value" id="stat-low-stock">—</div></div>
-      <div class="stat-card"><div class="stat-icon blue">🗂️</div><div class="stat-label">Toplam Adet</div><div class="stat-value" id="stat-total-stock">—</div></div>
-      <div class="stat-card"><div class="stat-icon orange">💰</div><div class="stat-label">Ort. Fiyat</div><div class="stat-value" id="stat-avg-price">—</div></div>
-    </div>
-    <div class="grid-2" style="align-items:start">
-      <div class="table-wrap"><table><thead><tr><th>#</th><th>Ürün</th><th>Fiyat</th><th>Stok</th><th>Durum</th><th>Sil</th></tr></thead><tbody id="products-tbody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Yükleniyor...</td></tr></tbody></table></div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">➕ Yeni Ürün Ekle</div></div>
-        <div class="form-group"><label class="form-label">Ürün Adı</label><input class="form-input" id="new-product-name" placeholder="Örn: Organik Zeytinyağı 1L"></div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Fiyat (₺)</label><input class="form-input" id="new-product-price" type="number" placeholder="0.00"></div>
-          <div class="form-group"><label class="form-label">Başlangıç Stok</label><input class="form-input" id="new-product-stock" type="number" placeholder="0"></div>
-        </div>
-        <button class="btn btn-primary" style="width:100%" onclick="addProduct()">Ürün Ekle</button>
-        <div id="add-product-result"></div>
-      </div>
-    </div>
-  </div>
-
-      <!-- CUSTOMERS -->
-      <div class="page" id="page-customers">
-        <div class="card" style="margin-bottom: 16px">
-          <div class="section-title">Müşteri Ara</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Telefon Numarası</label>
-              <input
-                class="form-input"
-                id="customer-phone-input"
-                placeholder="05XXXXXXXXX"
-              />
-            </div>
-            <div
-              style="display: flex; align-items: flex-end; padding-bottom: 14px"
-            >
-              <button class="btn btn-primary" onclick="searchCustomer()">
-                Ara
-              </button>
-            </div>
-          </div>
-          <div id="customer-result"></div>
-        </div>
-        <div class="card" style="margin-bottom: 16px">
-          <div class="section-title">Tüm Müşteriler</div>
-          <table id="customers-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Ad Soyad</th>
-                <th>Telefon</th>
-                <th>Adres</th>
-                <th>İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td
-                  colspan="5"
-                  style="
-                    text-align: center;
-                    color: var(--text-3);
-                    padding: 24px;
-                  "
-                >
-                  Yükleniyor...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="card">
-          <div class="section-title">Yeni Müşteri Ekle</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Ad Soyad</label
-              ><input class="form-input" id="new-name" placeholder="Ad Soyad" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Telefon</label
-              ><input
-                class="form-input"
-                id="new-phone"
-                placeholder="05XXXXXXXXX"
-              />
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Adres</label
-            ><input
-              class="form-input"
-              id="new-address"
-              placeholder="İl, ilçe..."
-            />
-          </div>
-          <button class="btn btn-primary" onclick="addCustomer()">Ekle</button>
-          <div id="add-customer-result" style="margin-top: 10px"></div>
-        </div>
-      </div>
-  <!-- MÜŞTERİLER -->
-  <div class="page" id="page-customers">
-    <div class="page-header"><div><div class="page-title">Müşteriler</div><div class="page-sub">Kayıtlı müşteri listesi</div></div><button class="btn btn-primary" onclick="loadCustomers()">↻ Yenile</button></div>
-    <div class="table-wrap"><table><thead><tr><th>#</th><th>Ad Soyad</th><th>Telefon</th><th>Adres</th></tr></thead><tbody id="customers-tbody"><tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-3)">Yükleniyor...</td></tr></tbody></table></div>
-  </div>
-
-  <!-- MARKETPLACe -->
-  <div class="page" id="page-marketplace">
-    <div class="page-header"><div><div class="page-title">Marketplace</div><div class="page-sub">Trendyol ve Hepsiburada siparişlerini senkronize et</div></div></div>
-    <div class="grid-2" style="margin-bottom:20px">
-      <div class="mp-card">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-          <div class="mp-logo" style="background:#FFF0E8;color:#FF6000">T</div>
-          <div><div style="font-size:15px;font-weight:800">Trendyol</div><div style="font-size:12px;color:var(--text-3)">Siparişleri çek ve sisteme aktar</div></div>
-        </div>
-        <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="syncMarketplace('trendyol')">🟠 Trendyol Siparişlerini Çek</button>
-        <div id="ty-result"></div>
-      </div>
-      <div class="mp-card">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-          <div class="mp-logo" style="background:#FFFBE6;color:#B8860B">H</div>
-          <div><div style="font-size:15px;font-weight:800">Hepsiburada</div><div style="font-size:12px;color:var(--text-3)">Siparişleri çek ve sisteme aktar</div></div>
-        </div>
-        <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="syncMarketplace('hepsiburada')">🟡 Hepsiburada Siparişlerini Çek</button>
-        <div id="hb-result"></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">📊 Kanal Bazlı Dağılım (Bugün)</div><button class="btn btn-sm" onclick="loadChannelReport()">Yenile</button></div>
-      <div id="channel-report-content" style="color:var(--text-3);font-size:13px">Yükleniyor...</div>
-    </div>
-  </div>
-
-      <!-- CARGO -->
-      <div class="page" id="page-cargo">
         <div class="grid-2">
           <div class="card">
-            <div class="section-title">Kargo Sorgula</div>
-            <div style="display: flex; gap: 8px; margin-bottom: 8px">
-              <input
-                class="form-input"
-                id="tracking-input"
-                placeholder="ORD-000001"
-                style="flex: 1"
-              />
-              <button class="btn btn-primary" onclick="trackCargo()">
-                Sorgula
-              </button>
+            <div class="card-header">
+              <div class="card-title">📋 Bekleyen Siparişler</div>
+              <span
+                style="font-size: 12px; color: var(--text-3)"
+                id="dm-pending-count"
+              ></span>
+            </div>
+            <div
+              id="dash-orders-list"
+              style="color: var(--text-3); font-size: 13px"
+            >
+              Yükleniyor...
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📦 Hazırlanacak Paketler</div>
+            </div>
+            <div
+              id="dash-packages-list"
+              style="color: var(--text-3); font-size: 13px"
+            >
+              Yükleniyor...
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🚚 Bugün Kargoya Verilecekler</div>
+              <span
+                style="font-size: 12px; color: var(--text-3)"
+                id="dm-cargo-count"
+              ></span>
+            </div>
+            <div
+              id="dash-cargo-list"
+              style="color: var(--text-3); font-size: 13px"
+            >
+              Yükleniyor...
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚠️ Kritik Stok Uyarıları</div>
+              <span
+                style="font-size: 12px; color: var(--text-3)"
+                id="dm-stock-count"
+              ></span>
+            </div>
+            <div
+              id="dash-stock-list"
+              style="color: var(--text-3); font-size: 13px"
+            >
+              Yükleniyor...
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px">
+          <div class="card-header">
+            <span class="card-title">🤖 ML Stok Öngörüleri</span>
+            <span style="font-size: 12px; color: var(--text-3)" id="ml-updated">
+              yükleniyor...
+            </span>
+          </div>
+          <div id="ml-widget-list">
+            <div style="color: var(--text-3); font-size: 13px; padding: 8px 0">
+              Yükleniyor...
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div id="ml-top-panel">
+            <div style="color: var(--text-3); padding: 12px">
+              ML analiz ediliyor...
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 16px">
+          <div class="card-header">
+            <div id="card-title" id="forecast-title">📈 Talep Tahmini></div>
+
+            <select
+              id="forecastProductSelect"
+              class="form-input"
+              style="width: 180px; padding: 6px 10px"
+            >
+              <option value="">Ürün seç</option>
+            </select>
+          </div>
+          <div
+            id="forecast-meta"
+            style="font-size: 12px; color: var(--text-3); margin-bottom: 14px"
+          ></div>
+          <canvas id="forecastChart" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- SİPARİŞLER -->
+      <div class="page" id="page-orders">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Siparişler</div>
+            <div class="page-sub">Tüm siparişleri görüntüle ve yönet</div>
+          </div>
+          <button class="btn btn-primary" onclick="loadOrders()">
+            ↻ Yenile
+          </button>
+        </div>
+        <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr)">
+          <div class="stat-card">
+            <div class="stat-icon blue">🆕</div>
+            <div class="stat-label">Bekleyen</div>
+            <div class="stat-value" id="o-pending">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">⚙️</div>
+            <div class="stat-label">Hazırlanan</div>
+            <div class="stat-value" id="o-preparing">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">🚚</div>
+            <div class="stat-label">Kargoda</div>
+            <div class="stat-value" id="o-shipped">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-label">Teslim</div>
+            <div class="stat-value" id="o-delivered">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">❌</div>
+            <div class="stat-label">İptal</div>
+            <div class="stat-value" id="o-cancelled">—</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sipariş No</th>
+                <th>Müşteri</th>
+                <th>Tutar</th>
+                <th>Kanal</th>
+                <th>Durum</th>
+                <th>Tarih</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr>
+                <td
+                  colspan="7"
+                  style="
+                    text-align: center;
+                    padding: 32px;
+                    color: var(--text-3);
+                  "
+                >
+                  Yükleniyor...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KARGO -->
+      <div class="page" id="page-cargo">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Kargo Takip</div>
+            <div class="page-sub">
+              Sipariş numarasıyla kargo durumunu sorgula
+            </div>
+          </div>
+        </div>
+        <div class="grid-2" style="align-items: start">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🔍 Kargo Sorgula</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sipariş Numarası</label>
+              <div style="display: flex; gap: 8px">
+                <input
+                  class="form-input"
+                  id="cargo-track-input"
+                  placeholder="Örn: ORD-000001"
+                  onkeydown="if (event.key === 'Enter') trackCargo();"
+                /><button class="btn btn-primary" onclick="trackCargo()">
+                  Sorgula
+                </button>
+              </div>
             </div>
             <div id="cargo-result"></div>
           </div>
           <div class="card">
-            <div class="section-title">Durum Güncelle</div>
+            <div class="card-header">
+              <div class="card-title">⚙️ Durum Güncelle</div>
+            </div>
             <div class="form-group">
               <label class="form-label">Sipariş ID</label
               ><input
                 class="form-input"
                 id="cargo-order-id"
+                placeholder="Örn: 1"
                 type="number"
-                placeholder="1"
               />
             </div>
             <div class="form-group">
               <label class="form-label">Yeni Durum</label>
               <select class="form-input" id="cargo-new-status">
-                <option value="pending">Bekliyor</option>
-                <option value="preparing">Hazırlanıyor</option>
-                <option value="shipped">Kargoda</option>
-                <option value="delivered">Teslim Edildi</option>
-                <option value="cancelled">İptal</option>
+                <option value="pending">⏳ Bekliyor</option>
+                <option value="preparing">⚙️ Hazırlanıyor</option>
+                <option value="shipped">🚚 Kargoya Verildi</option>
+                <option value="delivered">✅ Teslim Edildi</option>
+                <option value="cancelled">❌ İptal Edildi</option>
               </select>
             </div>
-            <button class="btn btn-primary" onclick="updateCargoStatus()">
+            <button
+              class="btn btn-primary"
+              style="width: 100%"
+              onclick="updateCargoStatus()"
+            >
               Güncelle
             </button>
-            <div id="cargo-update-result" style="margin-top: 10px"></div>
+            <div id="cargo-update-result"></div>
           </div>
         </div>
       </div>
-  <!-- RAPORLAR -->
-  <div class="page" id="page-reports">
-    <div class="page-header"><div><div class="page-title">Raporlar</div><div class="page-sub">Veri analizi ve dışa aktarma</div></div></div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-header"><div class="card-title">📥 Excel Export</div></div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <button class="btn" style="justify-content:flex-start" onclick="exportExcel('products')">📦 Ürün Listesi → Excel</button>
-          <button class="btn" style="justify-content:flex-start" onclick="exportExcel('orders')">🛒 Sipariş Listesi → Excel</button>
-          <button class="btn" style="justify-content:flex-start" onclick="exportExcel('customers')">👥 Müşteri Listesi → Excel</button>
-          <button class="btn" style="justify-content:flex-start" onclick="exportExcel('inventory')">📊 Envanter Hareketleri → Excel</button>
-        </div>
-        <div id="export-result"></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">🤖 AI Rapor</div></div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <button class="btn" style="justify-content:flex-start" onclick="reportChat('toplam ciro ne kadar')">💰 Toplam ciro hesapla</button>
-          <button class="btn" style="justify-content:flex-start" onclick="reportChat('hangi müşteri en fazla sipariş vermiş')">🏆 En aktif müşteri</button>
-          <button class="btn" style="justify-content:flex-start" onclick="reportChat('stoku kritik seviyenin altında olan ürünler')">⚠️ Kritik stok raporu</button>
-          <button class="btn" style="justify-content:flex-start" onclick="reportChat('bekleyen siparişleri listele')">🛒 Bekleyen siparişler</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-      <!-- REPORTS -->
+      <!-- STOK -->
+      <div class="page" id="page-stock">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Stok Yönetimi</div>
+            <div class="page-sub">
+              Ürünleri ekle, düzenle, stok durumunu takip et
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="loadProducts()">
+            ↻ Yenile
+          </button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon green">📦</div>
+            <div class="stat-label">Toplam Ürün</div>
+            <div class="stat-value" id="stat-total-products">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">⚠️</div>
+            <div class="stat-label">Kritik Stok</div>
+            <div class="stat-value" id="stat-low-stock">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">🗂️</div>
+            <div class="stat-label">Toplam Adet</div>
+            <div class="stat-value" id="stat-total-stock">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">💰</div>
+            <div class="stat-label">Ort. Fiyat</div>
+            <div class="stat-value" id="stat-avg-price">—</div>
+          </div>
+        </div>
+        <div class="grid-2" style="align-items: start">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Ürün</th>
+                  <th>Fiyat</th>
+                  <th>Stok</th>
+                  <th>Durum</th>
+                  <th>Sil</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody">
+                <tr>
+                  <td
+                    colspan="6"
+                    style="
+                      text-align: center;
+                      padding: 32px;
+                      color: var(--text-3);
+                    "
+                  >
+                    Yükleniyor...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">➕ Yeni Ürün Ekle</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ürün Adı</label
+              ><input
+                class="form-input"
+                id="new-product-name"
+                placeholder="Örn: Organik Zeytinyağı 1L"
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Fiyat (₺)</label
+                ><input
+                  class="form-input"
+                  id="new-product-price"
+                  type="number"
+                  placeholder="0.00"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Başlangıç Stok</label
+                ><input
+                  class="form-input"
+                  id="new-product-stock"
+                  type="number"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              style="width: 100%"
+              onclick="addProduct()"
+            >
+              Ürün Ekle
+            </button>
+            <div id="add-product-result"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÜŞTERİLER -->
+      <div class="page" id="page-customers">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Müşteriler</div>
+            <div class="page-sub">Kayıtlı müşteri listesi</div>
+          </div>
+          <button class="btn btn-primary" onclick="loadCustomers()">
+            ↻ Yenile
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ad Soyad</th>
+                <th>Telefon</th>
+                <th>Adres</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <tr>
+                <td
+                  colspan="4"
+                  style="
+                    text-align: center;
+                    padding: 32px;
+                    color: var(--text-3);
+                  "
+                >
+                  Yükleniyor...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MARKETPLACe -->
+      <div class="page" id="page-marketplace">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Marketplace</div>
+            <div class="page-sub">
+              Trendyol ve Hepsiburada siparişlerini senkronize et
+            </div>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-bottom: 20px">
+          <div class="mp-card">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 14px;
+              "
+            >
+              <div class="mp-logo" style="background: #fff0e8; color: #ff6000">
+                T
+              </div>
+              <div>
+                <div style="font-size: 15px; font-weight: 800">Trendyol</div>
+                <div style="font-size: 12px; color: var(--text-3)">
+                  Siparişleri çek ve sisteme aktar
+                </div>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              style="width: 100%; margin-bottom: 8px"
+              onclick="syncMarketplace('trendyol')"
+            >
+              🟠 Trendyol Siparişlerini Çek
+            </button>
+            <div id="ty-result"></div>
+          </div>
+          <div class="mp-card">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 14px;
+              "
+            >
+              <div class="mp-logo" style="background: #fffbe6; color: #b8860b">
+                H
+              </div>
+              <div>
+                <div style="font-size: 15px; font-weight: 800">Hepsiburada</div>
+                <div style="font-size: 12px; color: var(--text-3)">
+                  Siparişleri çek ve sisteme aktar
+                </div>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              style="width: 100%; margin-bottom: 8px"
+              onclick="syncMarketplace('hepsiburada')"
+            >
+              🟡 Hepsiburada Siparişlerini Çek
+            </button>
+            <div id="hb-result"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Kanal Bazlı Dağılım (Bugün)</div>
+            <button class="btn btn-sm" onclick="loadChannelReport()">
+              Yenile
+            </button>
+          </div>
+          <div
+            id="channel-report-content"
+            style="color: var(--text-3); font-size: 13px"
+          >
+            Yükleniyor...
+          </div>
+        </div>
+      </div>
+
+      <!-- RAPORLAR -->
       <div class="page" id="page-reports">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Raporlar</div>
+            <div class="page-sub">Veri analizi ve dışa aktarma</div>
+          </div>
+        </div>
         <div class="grid-2">
           <div class="card">
-            <div class="section-title">Excel Export</div>
-            <p
-              style="font-size: 13px; color: var(--text-2); margin-bottom: 16px"
-            >
-              Verileri Excel formatında indirin.
-            </p>
+            <div class="card-header">
+              <div class="card-title">📥 Excel Export</div>
+            </div>
             <div style="display: flex; flex-direction: column; gap: 8px">
               <button
                 class="btn"
-                style="text-align: left"
+                style="justify-content: flex-start"
                 onclick="exportExcel('products')"
               >
                 📦 Ürün Listesi → Excel
               </button>
               <button
                 class="btn"
-                style="text-align: left"
+                style="justify-content: flex-start"
                 onclick="exportExcel('orders')"
               >
                 🛒 Sipariş Listesi → Excel
               </button>
               <button
                 class="btn"
-                style="text-align: left"
+                style="justify-content: flex-start"
                 onclick="exportExcel('customers')"
               >
                 👥 Müşteri Listesi → Excel
               </button>
               <button
                 class="btn"
-                style="text-align: left"
+                style="justify-content: flex-start"
                 onclick="exportExcel('inventory')"
               >
                 📊 Envanter Hareketleri → Excel
               </button>
             </div>
-            <div id="export-result" style="margin-top: 12px"></div>
+            <div id="export-result"></div>
           </div>
           <div class="card">
-            <div class="section-title">AI Rapor</div>
-            <p
-              style="font-size: 13px; color: var(--text-2); margin-bottom: 16px"
-            >
-              Doğal dille rapor isteyin.
-            </p>
+            <div class="card-header">
+              <div class="card-title">🤖 AI Rapor</div>
+            </div>
             <div style="display: flex; flex-direction: column; gap: 8px">
               <button
-                class="quick-btn"
-                style="text-align: left; border-radius: 8px; padding: 10px 12px"
+                class="btn"
+                style="justify-content: flex-start"
                 onclick="reportChat('toplam ciro ne kadar')"
               >
-                💰 Toplam ciro
+                💰 Toplam ciro hesapla
               </button>
               <button
-                class="quick-btn"
-                style="text-align: left; border-radius: 8px; padding: 10px 12px"
+                class="btn"
+                style="justify-content: flex-start"
                 onclick="reportChat('hangi müşteri en fazla sipariş vermiş')"
               >
                 🏆 En aktif müşteri
               </button>
               <button
-                class="quick-btn"
-                style="text-align: left; border-radius: 8px; padding: 10px 12px"
+                class="btn"
+                style="justify-content: flex-start"
                 onclick="
                   reportChat('stoku kritik seviyenin altında olan ürünler')
                 "
@@ -808,8 +1518,8 @@ tr:hover td{background:#F8FAFF}
                 ⚠️ Kritik stok raporu
               </button>
               <button
-                class="quick-btn"
-                style="text-align: left; border-radius: 8px; padding: 10px 12px"
+                class="btn"
+                style="justify-content: flex-start"
                 onclick="reportChat('bekleyen siparişleri listele')"
               >
                 🛒 Bekleyen siparişler
@@ -818,146 +1528,828 @@ tr:hover td{background:#F8FAFF}
           </div>
         </div>
       </div>
-    </div>
-  <!-- AI ASISTAN -->
-  <div class="page" id="page-chat">
-    <div class="page-header"><div><div class="page-title">AI Asistan</div><div class="page-sub">Doğal dille sipariş, stok ve müşteri sorguları yap</div></div></div>
-    <div class="card" style="max-width:800px">
-      <div class="quick-chips">
-        <button class="chip" onclick="quickSend('ürünleri listele')">📦 Ürünleri listele</button>
-        <button class="chip" onclick="quickSend('son siparişleri göster')">🛒 Son siparişler</button>
-        <button class="chip" onclick="quickSend('stoku az olan ürünler var mı')">⚠️ Kritik stok</button>
-        <button class="chip" onclick="quickSend('toplam ciro ne kadar')">💰 Ciro hesapla</button>
-        <button class="chip" onclick="quickSend('bekleyen siparişleri listele')">📋 Bekleyenler</button>
+
+      <!-- AI ASISTAN -->
+      <div class="page" id="page-chat">
+        <div class="page-header">
+          <div>
+            <div class="page-title">AI Asistan</div>
+            <div class="page-sub">
+              Doğal dille sipariş, stok ve müşteri sorguları yap
+            </div>
+          </div>
+        </div>
+        <div class="card" style="max-width: 800px">
+          <div class="quick-chips">
+            <button class="chip" onclick="quickSend('ürünleri listele')">
+              📦 Ürünleri listele
+            </button>
+            <button class="chip" onclick="quickSend('son siparişleri göster')">
+              🛒 Son siparişler
+            </button>
+            <button
+              class="chip"
+              onclick="quickSend('stoku az olan ürünler var mı')"
+            >
+              ⚠️ Kritik stok
+            </button>
+            <button class="chip" onclick="quickSend('toplam ciro ne kadar')">
+              💰 Ciro hesapla
+            </button>
+            <button
+              class="chip"
+              onclick="quickSend('bekleyen siparişleri listele')"
+            >
+              📋 Bekleyenler
+            </button>
+          </div>
+          <div id="chat-messages"></div>
+          <div class="chat-input-row">
+            <textarea
+              id="chat-input"
+              rows="2"
+              placeholder="Bir şey sor... (Enter ile gönder)"
+              onkeydown="chatKey(event)"
+            ></textarea>
+            <button class="btn btn-primary" onclick="sendChat()">Gönder</button>
+          </div>
+        </div>
       </div>
-      <div id="chat-messages"></div>
-      <div class="chat-input-row">
-        <textarea id="chat-input" rows="2" placeholder="Bir şey sor... (Enter ile gönder)" onkeydown="chatKey(event)"></textarea>
-        <button class="btn btn-primary" onclick="sendChat()">Gönder</button>
+
+      <!-- DESTEK TALEPLERİ -->
+      <div class="page" id="page-tickets">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Destek Talepleri</div>
+            <div class="page-sub">
+              <span
+                id="ticket-open-count"
+                style="color: var(--red); font-weight: 700"
+                >—</span
+              >
+              açık talep · <span id="ticket-total-count">—</span> toplam
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="loadTickets('open')">
+            ↻ Yenile
+          </button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon red">🔴</div>
+            <div class="stat-label">Açık Talepler</div>
+            <div class="stat-value" id="tk-open">—</div>
+            <div class="stat-sub">hemen ilgilenilmeli</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">🔄</div>
+            <div class="stat-label">İade Talepleri</div>
+            <div class="stat-value" id="tk-iade">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">❌</div>
+            <div class="stat-label">İptal Talepleri</div>
+            <div class="stat-value" id="tk-iptal">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-label">Çözülen</div>
+            <div class="stat-value" id="tk-resolved">—</div>
+          </div>
+        </div>
+        <div
+          style="display: flex; gap: 8px; margin-bottom: 16px"
+          id="ticket-filter-btns"
+        >
+          <button
+            class="btn btn-primary btn-sm"
+            data-filter="open"
+            onclick="setTicketFilter(this, 'open')"
+          >
+            🔴 Açık
+          </button>
+          <button
+            class="btn btn-sm"
+            data-filter="in_progress"
+            onclick="setTicketFilter(this, 'in_progress')"
+          >
+            🟡 İşlemde
+          </button>
+          <button
+            class="btn btn-sm"
+            data-filter="resolved"
+            onclick="setTicketFilter(this, 'resolved')"
+          >
+            🟢 Çözüldü
+          </button>
+          <button
+            class="btn btn-sm"
+            data-filter="all"
+            onclick="setTicketFilter(this, 'all')"
+          >
+            Tümü
+          </button>
+        </div>
+        <div
+          id="tickets-list"
+          style="display: flex; flex-direction: column; gap: 10px"
+        >
+          <div style="color: var(--text-3); text-align: center; padding: 40px">
+            Yükleniyor...
+          </div>
+        </div>
+        <div
+          style="
+            margin-top: 14px;
+            padding: 12px 16px;
+            background: var(--blue-light);
+            border-radius: 10px;
+            font-size: 12.5px;
+            color: var(--blue);
+            font-weight: 500;
+          "
+        >
+          💡 Telegram linkine tıklayarak müşteriyle doğrudan
+          mesajlaşabilirsiniz. Her 15 saniyede bir otomatik güncellenir.
+        </div>
       </div>
     </div>
-  </div>
+    <!-- /main -->
 
-  <!-- DESTEK TALEPLERİ -->
-  <div class="page" id="page-tickets">
-    <div class="page-header">
-      <div><div class="page-title">Destek Talepleri</div><div class="page-sub"><span id="ticket-open-count" style="color:var(--red);font-weight:700">—</span> açık talep · <span id="ticket-total-count">—</span> toplam</div></div>
-      <button class="btn btn-primary" onclick="loadTickets('open')">↻ Yenile</button>
+    <div id="ticket-popup">
+      <span style="font-size: 22px">🔔</span>
+      <div>
+        <div style="font-weight: 700">Yeni Destek Talebi!</div>
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 2px">
+          Müşteri yanıt bekliyor
+        </div>
+      </div>
+      <button
+        onclick="
+          document.getElementById('ticket-popup').classList.remove('show');
+          showPage('tickets');
+        "
+        style="
+          background: rgba(255, 255, 255, 0.15);
+          border: none;
+          color: #fff;
+          padding: 7px 13px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 12px;
+          font-family: inherit;
+          font-weight: 600;
+          white-space: nowrap;
+        "
+      >
+        Görüntüle →
+      </button>
     </div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon red">🔴</div><div class="stat-label">Açık Talepler</div><div class="stat-value" id="tk-open">—</div><div class="stat-sub">hemen ilgilenilmeli</div></div>
-      <div class="stat-card"><div class="stat-icon orange">🔄</div><div class="stat-label">İade Talepleri</div><div class="stat-value" id="tk-iade">—</div></div>
-      <div class="stat-card"><div class="stat-icon orange">❌</div><div class="stat-label">İptal Talepleri</div><div class="stat-value" id="tk-iptal">—</div></div>
-      <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-label">Çözülen</div><div class="stat-value" id="tk-resolved">—</div></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:16px" id="ticket-filter-btns">
-      <button class="btn btn-primary btn-sm" data-filter="open" onclick="setTicketFilter(this,'open')">🔴 Açık</button>
-      <button class="btn btn-sm" data-filter="in_progress" onclick="setTicketFilter(this,'in_progress')">🟡 İşlemde</button>
-      <button class="btn btn-sm" data-filter="resolved" onclick="setTicketFilter(this,'resolved')">🟢 Çözüldü</button>
-      <button class="btn btn-sm" data-filter="all" onclick="setTicketFilter(this,'all')">Tümü</button>
-    </div>
-    <div id="tickets-list" style="display:flex;flex-direction:column;gap:10px"><div style="color:var(--text-3);text-align:center;padding:40px">Yükleniyor...</div></div>
-    <div style="margin-top:14px;padding:12px 16px;background:var(--blue-light);border-radius:10px;font-size:12.5px;color:var(--blue);font-weight:500">
-      💡 Telegram linkine tıklayarak müşteriyle doğrudan mesajlaşabilirsiniz. Her 15 saniyede bir otomatik güncellenir.
-    </div>
-  </div>
-
-</div><!-- /main -->
-
-<div id="ticket-popup">
-  <span style="font-size:22px">🔔</span>
-  <div><div style="font-weight:700">Yeni Destek Talebi!</div><div style="font-size:12px;opacity:.7;margin-top:2px">Müşteri yanıt bekliyor</div></div>
-  <button onclick="document.getElementById('ticket-popup').classList.remove('show');showPage('tickets')" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:7px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;white-space:nowrap">Görüntüle →</button>
-</div>
 
     <script>
       const API = "http://127.0.0.1:8000";
+      const STATUS_MAP = {
+        pending: { label: "Bekliyor", badge: "badge-yellow", emoji: "⏳" },
+        preparing: { label: "Hazırlanıyor", badge: "badge-blue", emoji: "⚙️" },
+        shipped: { label: "Kargoda", badge: "badge-purple", emoji: "🚚" },
+        delivered: {
+          label: "Teslim Edildi",
+          badge: "badge-green",
+          emoji: "✅",
+        },
+        cancelled: { label: "İptal Edildi", badge: "badge-red", emoji: "❌" },
+      };
+      const CARGO_STEPS = [
+        { key: "pending", label: "Sipariş Alındı", emoji: "🛒" },
+        { key: "label_created", label: "Etiket Hazırlandı", emoji: "🏷️" },
+        { key: "in_preparation", label: "Hazırlanıyor", emoji: "📦" },
+        { key: "in_transit", label: "Yolda", emoji: "🚚" },
+        { key: "delivered", label: "Teslim Edildi", emoji: "✅" },
+      ];
+      const CARGO_STEP_INDEX = {
+        pending: 0,
+        label_created: 1,
+        in_preparation: 2,
+        in_transit: 3,
+        delivered: 4,
+      };
+      const CHANNEL_MAP = {
+        trendyol: { label: "Trendyol", color: "#FF6000", bg: "#FFF0E8" },
+        hepsiburada: { label: "Hepsiburada", color: "#B8860B", bg: "#FFFBE6" },
+        direct: {
+          label: "Direkt",
+          color: "var(--green-dark)",
+          bg: "var(--green-light)",
+        },
+      };
 
-      function initDashboardHeader() {
-        const h = new Date().getHours();
-        const greeting =
-          h < 12 ? "Günaydın" : h < 18 ? "İyi günler" : "İyi akşamlar";
-        document.getElementById("dash-greeting").textContent = greeting + " 👋";
-        const opts = {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
+      function initClock() {
+        const el = document.getElementById("topbar-time");
+        const u = () => {
+          el.textContent = new Date().toLocaleTimeString("tr-TR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
         };
-        document.getElementById("dash-date").textContent =
-          new Date().toLocaleDateString("tr-TR", opts);
+        u();
+        setInterval(u, 1000);
       }
-<script>
-const API='http://127.0.0.1:8000';
-const STATUS_MAP={pending:{label:'Bekliyor',badge:'badge-yellow',emoji:'⏳'},preparing:{label:'Hazırlanıyor',badge:'badge-blue',emoji:'⚙️'},shipped:{label:'Kargoda',badge:'badge-purple',emoji:'🚚'},delivered:{label:'Teslim Edildi',badge:'badge-green',emoji:'✅'},cancelled:{label:'İptal Edildi',badge:'badge-red',emoji:'❌'}};
-const CARGO_STEPS=[{key:'pending',label:'Sipariş Alındı',emoji:'🛒'},{key:'label_created',label:'Etiket Hazırlandı',emoji:'🏷️'},{key:'in_preparation',label:'Hazırlanıyor',emoji:'📦'},{key:'in_transit',label:'Yolda',emoji:'🚚'},{key:'delivered',label:'Teslim Edildi',emoji:'✅'}];
-const CARGO_STEP_INDEX={pending:0,label_created:1,in_preparation:2,in_transit:3,delivered:4};
-const CHANNEL_MAP={trendyol:{label:'Trendyol',color:'#FF6000',bg:'#FFF0E8'},hepsiburada:{label:'Hepsiburada',color:'#B8860B',bg:'#FFFBE6'},direct:{label:'Direkt',color:'var(--green-dark)',bg:'var(--green-light)'}};
+      function initDashHeader() {
+        const h = new Date().getHours();
+        const g = h < 12 ? "Günaydın" : h < 18 ? "İyi günler" : "İyi akşamlar";
+        document.getElementById("dash-greeting").textContent = g + " 👋";
+        document.getElementById("dash-date").textContent =
+          new Date().toLocaleDateString("tr-TR", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+      }
 
-function initClock(){const el=document.getElementById('topbar-time');const u=()=>{el.textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});};u();setInterval(u,1000);}
-function initDashHeader(){const h=new Date().getHours();const g=h<12?'Günaydın':h<18?'İyi günler':'İyi akşamlar';document.getElementById('dash-greeting').textContent=g+' 👋';document.getElementById('dash-date').textContent=new Date().toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+      function showPage(page) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((n) => n.classList.remove("active"));
+        document.getElementById("page-" + page).classList.add("active");
+        const titles = {
+          dashboard: "Dashboard",
+          orders: "Siparişler",
+          cargo: "Kargo Takip",
+          stock: "Stok Yönetimi",
+          customers: "Müşteriler",
+          marketplace: "Marketplace",
+          reports: "Raporlar",
+          chat: "AI Asistan",
+          tickets: "Destek Talepleri",
+        };
+        document.getElementById("page-title").textContent =
+          titles[page] || page;
+        document.querySelectorAll(".nav-item").forEach((n) => {
+          if (
+            n.getAttribute("onclick") &&
+            n.getAttribute("onclick").includes("'" + page + "'")
+          )
+            n.classList.add("active");
+        });
+        if (page === "dashboard") loadDashboard();
+        if (page === "orders") loadOrders();
+        if (page === "stock") loadProducts();
+        if (page === "customers") loadCustomers();
+        if (page === "marketplace") loadChannelReport();
+        if (page === "tickets") {
+          initTicketNotifications();
+          loadTickets("open");
+        }
+      }
+      function refreshPage() {
+        const a = document.querySelector(".page.active");
+        if (a) showPage(a.id.replace("page-", ""));
+      }
 
-function showPage(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  const titles={dashboard:'Dashboard',orders:'Siparişler',cargo:'Kargo Takip',stock:'Stok Yönetimi',customers:'Müşteriler',marketplace:'Marketplace',reports:'Raporlar',chat:'AI Asistan',tickets:'Destek Talepleri'};
-  document.getElementById('page-title').textContent=titles[page]||page;
-  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+page+"'"))n.classList.add('active');});
-  if(page==='dashboard')loadDashboard();
-  if(page==='orders')loadOrders();
-  if(page==='stock')loadProducts();
-  if(page==='customers')loadCustomers();
-  if(page==='marketplace')loadChannelReport();
-  if(page==='tickets'){initTicketNotifications();loadTickets('open');}
-}
-function refreshPage(){const a=document.querySelector('.page.active');if(a)showPage(a.id.replace('page-',''));}
+      async function loadDashboard() {
+        initDashHeader();
+        try {
+          const [ordRes, stRes, tkRes] = await Promise.all([
+            fetch(API + "/orders/"),
+            fetch(API + "/products/"),
+            fetch(API + "/tickets/?status=open"),
+          ]);
+          const ordData = await ordRes.json();
+          const stData = await stRes.json();
+          const tkData = await tkRes.json();
+          if (ordData.success) {
+            const orders = ordData.data;
+            const pending = orders.filter((o) => o.status === "pending");
+            const shipped = orders.filter((o) => o.status === "shipped");
+            const preparing = orders.filter((o) => o.status === "preparing");
+            document.getElementById("dm-pending").textContent = pending.length;
+            document.getElementById("dm-shipped").textContent = shipped.length;
+            document.getElementById("dm-pending-count").textContent =
+              pending.length + " sipariş";
+            document.getElementById("dash-orders-list").innerHTML =
+              pending.length
+                ? pending
+                    .slice(0, 5)
+                    .map(
+                      (o) =>
+                        `<div class="dash-row"><div class="dash-avatar" style="background:var(--blue-light);color:var(--blue)">${(o.customer_name || "?")[0].toUpperCase()}</div><div class="dash-info"><div class="dash-name">${o.customer_name || "Bilinmiyor"}</div><div class="dash-sub" style="font-family:'DM Mono',monospace">ORD-${String(o.id).padStart(6, "0")}</div></div><div class="dash-right">${o.total_amount?.toFixed(0) || 0} ₺</div></div>`,
+                    )
+                    .join("")
+                : '<div style="text-align:center;padding:20px;color:var(--green-dark)">🎉 Bekleyen sipariş yok</div>';
+            const totals = {};
+            preparing.forEach((o) => {
+              if (o.items)
+                o.items.forEach((i) => {
+                  totals[i.product_name || "Ürün"] =
+                    (totals[i.product_name || "Ürün"] || 0) + i.quantity;
+                });
+            });
+            const entries = Object.entries(totals);
+            document.getElementById("dash-packages-list").innerHTML =
+              entries.length
+                ? entries
+                    .sort((a, b) => b[1] - a[1])
+                    .map(
+                      ([n, q]) =>
+                        `<div class="dash-row"><div class="dash-avatar" style="background:var(--orange-light);color:var(--orange)">📦</div><div class="dash-info"><div class="dash-name">${n}</div></div><div class="dash-right">${q} adet</div></div>`,
+                    )
+                    .join("")
+                : '<div style="text-align:center;padding:20px;color:var(--text-3)">Hazırlanacak ürün yok</div>';
+            document.getElementById("dm-cargo-count").textContent =
+              shipped.length + " paket";
+            document.getElementById("dash-cargo-list").innerHTML =
+              shipped.length
+                ? shipped
+                    .slice(0, 5)
+                    .map(
+                      (o) =>
+                        `<div class="dash-row"><div class="dash-avatar" style="background:var(--purple-light);color:var(--purple)">🚚</div><div class="dash-info"><div class="dash-name">${o.customer_name || "Bilinmiyor"}</div><div class="dash-sub" style="font-family:'DM Mono',monospace">ORD-${String(o.id).padStart(6, "0")}</div></div></div>`,
+                    )
+                    .join("")
+                : '<div style="text-align:center;padding:20px;color:var(--text-3)">Kargoda ürün yok</div>';
+          }
+          if (stData.success) {
+            const low = stData.data.filter((p) => p.stock_quantity <= 20);
+            document.getElementById("dm-lowstock").textContent = low.length;
+            document.getElementById("dm-stock-count").textContent =
+              low.length + " ürün";
+            document.getElementById("dash-stock-list").innerHTML = low.length
+              ? low
+                  .slice(0, 5)
+                  .map((p) => {
+                    const cls =
+                      p.stock_quantity === 0
+                        ? "badge-red"
+                        : p.stock_quantity <= 10
+                          ? "badge-red"
+                          : "badge-yellow";
+                    const emoji = p.stock_quantity === 0 ? "❌" : "🟡";
+                    return `<div class="dash-row"><div class="dash-avatar" style="background:var(--red-light)">${emoji}</div><div class="dash-info"><div class="dash-name">${p.name}</div></div><div class="dash-right"><span class="badge ${cls}">${p.stock_quantity} adet</span></div></div>`;
+                  })
+                  .join("")
+              : '<div style="text-align:center;padding:20px;color:var(--green-dark)">✅ Tüm stoklar yeterli</div>';
+          }
+          if (tkData.success) {
+            const cnt = (tkData.data || []).length;
+            document.getElementById("dm-tickets").textContent = cnt;
+            const b = document.getElementById("ticket-badge");
+            if (b) {
+              if (cnt > 0) {
+                b.textContent = cnt;
+                b.style.display = "inline";
+              } else b.style.display = "none";
+            }
+          }
+        } catch (e) {
+          document.getElementById("dash-orders-list").innerHTML =
+            '<div style="color:var(--red);padding:12px;text-align:center">⚠️ Bağlantı hatası</div>';
+        }
 
-async function loadDashboard(){
-  initDashHeader();
-  try{
-    const [ordRes,stRes,tkRes]=await Promise.all([fetch(API+'/orders/'),fetch(API+'/products/'),fetch(API+'/tickets/?status=open')]);
-    const ordData=await ordRes.json();const stData=await stRes.json();const tkData=await tkRes.json();
-    if(ordData.success){
-      const orders=ordData.data;
-      const pending=orders.filter(o=>o.status==='pending');
-      const shipped=orders.filter(o=>o.status==='shipped');
-      const preparing=orders.filter(o=>o.status==='preparing');
-      document.getElementById('dm-pending').textContent=pending.length;
-      document.getElementById('dm-shipped').textContent=shipped.length;
-      document.getElementById('dm-pending-count').textContent=pending.length+' sipariş';
-      document.getElementById('dash-orders-list').innerHTML=pending.length?pending.slice(0,5).map(o=>`<div class="dash-row"><div class="dash-avatar" style="background:var(--blue-light);color:var(--blue)">${(o.customer_name||'?')[0].toUpperCase()}</div><div class="dash-info"><div class="dash-name">${o.customer_name||'Bilinmiyor'}</div><div class="dash-sub" style="font-family:'DM Mono',monospace">ORD-${String(o.id).padStart(6,'0')}</div></div><div class="dash-right">${o.total_amount?.toFixed(0)||0} ₺</div></div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--green-dark)">🎉 Bekleyen sipariş yok</div>';
-      const totals={};preparing.forEach(o=>{if(o.items)o.items.forEach(i=>{totals[i.product_name||'Ürün']=(totals[i.product_name||'Ürün']||0)+i.quantity;});});
-      const entries=Object.entries(totals);
-      document.getElementById('dash-packages-list').innerHTML=entries.length?entries.sort((a,b)=>b[1]-a[1]).map(([n,q])=>`<div class="dash-row"><div class="dash-avatar" style="background:var(--orange-light);color:var(--orange)">📦</div><div class="dash-info"><div class="dash-name">${n}</div></div><div class="dash-right">${q} adet</div></div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--text-3)">Hazırlanacak ürün yok</div>';
-      document.getElementById('dm-cargo-count').textContent=shipped.length+' paket';
-      document.getElementById('dash-cargo-list').innerHTML=shipped.length?shipped.slice(0,5).map(o=>`<div class="dash-row"><div class="dash-avatar" style="background:var(--purple-light);color:var(--purple)">🚚</div><div class="dash-info"><div class="dash-name">${o.customer_name||'Bilinmiyor'}</div><div class="dash-sub" style="font-family:'DM Mono',monospace">ORD-${String(o.id).padStart(6,'0')}</div></div></div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--text-3)">Kargoda ürün yok</div>';
-    }
-    if(stData.success){
-      const low=stData.data.filter(p=>p.stock_quantity<=20);
-      document.getElementById('dm-lowstock').textContent=low.length;
-      document.getElementById('dm-stock-count').textContent=low.length+' ürün';
-      document.getElementById('dash-stock-list').innerHTML=low.length?low.slice(0,5).map(p=>{const cls=p.stock_quantity===0?'badge-red':p.stock_quantity<=10?'badge-red':'badge-yellow';const emoji=p.stock_quantity===0?'❌':'🟡';return`<div class="dash-row"><div class="dash-avatar" style="background:var(--red-light)">${emoji}</div><div class="dash-info"><div class="dash-name">${p.name}</div></div><div class="dash-right"><span class="badge ${cls}">${p.stock_quantity} adet</span></div></div>`;}).join(''):'<div style="text-align:center;padding:20px;color:var(--green-dark)">✅ Tüm stoklar yeterli</div>';
-    }
-    if(tkData.success){const cnt=(tkData.data||[]).length;document.getElementById('dm-tickets').textContent=cnt;const b=document.getElementById('ticket-badge');if(b){if(cnt>0){b.textContent=cnt;b.style.display='inline';}else b.style.display='none';}}
-  }catch(e){document.getElementById('dash-orders-list').innerHTML='<div style="color:var(--red);padding:12px;text-align:center">⚠️ Bağlantı hatası</div>';}
-}
+        try {
+          const [topRes, alertRes] = await Promise.all([
+            fetch(API + "/ml/top-products?top_n=5&days_back=90"),
+            fetch(API + "/ml/stock-alerts?top_n=5"),
+          ]);
+          console.log("STATUS", topRes.status);
+          console.log("Status2", alertRes.status);
+          const topData = await topRes.json();
+          const alertData = await alertRes.json();
 
-async function loadOrders(){
-  const tbody=document.getElementById('orders-tbody');
-  tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Yükleniyor...</td></tr>';
-  try{
-    const res=await fetch(API+'/orders/');const data=await res.json();if(!data.success)return;
-    const orders=data.data;
-    ['pending','preparing','shipped','delivered','cancelled'].forEach(s=>{document.getElementById('o-'+s).textContent=orders.filter(o=>o.status===s).length;});
-    tbody.innerHTML=orders.map(o=>{
-      const s=STATUS_MAP[o.status]||{label:o.status,badge:'badge-gray',emoji:'❓'};
-      const ch=CHANNEL_MAP[o.channel||'direct']||{label:o.channel||'Direkt',color:'var(--text-3)',bg:'var(--bg)'};
-      const date=o.created_at?new Date(o.created_at).toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
-      return`<tr><td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-3)">ORD-${String(o.id).padStart(6,'0')}</span></td><td style="font-weight:600">${o.customer_name||'—'}</td><td><strong>${o.total_amount?.toFixed(2)||0} ₺</strong></td><td><span style="background:${ch.bg};color:${ch.color};padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700">${ch.label}</span></td><td><span class="badge ${s.badge}">${s.emoji} ${s.label}</span></td><td style="font-size:12px;color:var(--text-3)">${date}</td><td><button class="btn btn-sm" onclick="viewOrderDetail(${o.id})">Detay</button></td></tr>`;
-    }).join('');
-  }catch(e){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--red);padding:32px">Bağlantı hatası</td></tr>';}
-}
+          if (topData.success) {
+            const items = (topData.data || []).filter(
+              (i) => i.product_id && i.product_name,
+            );
+            const select = document.getElementById("forecastProductSelect");
+            select.innerHTML = `<option value="">Ürün seç</option>`;
+
+            items.forEach((p) => {
+              const option = document.createElement("option");
+              option.value = p.product_id;
+              option.textContent = p.product_name || `Ürün #${p.product_id}`;
+              select.appendChild(option);
+            });
+            const validItems = items.filter((i) => i.product_id);
+
+            const pricePromises = validItems.map((i) =>
+              fetch(
+                API +
+                  "/ml/price-suggest/" +
+                  i.product_id +
+                  "?low_stock_threshold=20&high_stock_threshold=100",
+              )
+                .then((r) => r.json())
+                .catch(() => null),
+            );
+
+            document.getElementById("ml-top-panel").innerHTML = `
+  <div class="card-header">
+    <div class="card-title">
+      🔥 ML Öne Çıkan Ürünler
+    </div>
+
+    <span style="font-size:12px;color:var(--text-3)">
+      Son 90 gün
+    </span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    ${validItems
+      .map((p) => {
+        const riskCls =
+          p.stock_risk === "critical"
+            ? "badge-red"
+            : p.stock_risk === "warning"
+              ? "badge-yellow"
+              : "badge-green";
+
+        const riskTxt =
+          p.stock_risk === "critical"
+            ? "Kritik"
+            : p.stock_risk === "warning"
+              ? "Uyarı"
+              : "İyi";
+
+        return `
+          <div class="dash-row">
+            <div class="dash-avatar"
+                 style="background:var(--purple-light);color:var(--purple)">
+              🤖
+            </div>
+
+            <div class="dash-info">
+              <div class="dash-name">
+                ${p.product_name || `Ürün #${p.product_id}`}
+              </div>
+
+              <div class="dash-sub">
+                Haftalık tahmin:
+                ${p.predicted_weekly_demand} adet
+              </div>
+            </div>
+
+            <div class="dash-right">
+              <span class="badge ${riskCls}">
+                ${riskTxt}
+              </span>
+            </div>
+          </div>
+        `;
+      })
+      .join("")}
+  </div>
+`;
+            const prices = await Promise.all(pricePromises);
+
+            document.getElementById("ml-updated").textContent =
+              items.length + " ürün izleniyor";
+
+            document.getElementById("ml-widget-list").innerHTML = items.length
+              ? `
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Ürün</th>
+                      <th>Hız</th>
+                      <th>Haftalık Tahmin</th>
+                      <th>Risk</th>
+                      <th>Fiyat Önerisi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${items
+                      .map((item, idx) => {
+                        const p = prices[idx]?.data;
+
+                        const riskCls =
+                          item.stock_risk === "critical"
+                            ? "badge-red"
+                            : item.stock_risk === "warning"
+                              ? "badge-yellow"
+                              : "badge-green";
+
+                        const riskTxt =
+                          item.stock_risk === "critical"
+                            ? "Kritik"
+                            : item.stock_risk === "warning"
+                              ? "Uyarı"
+                              : "İyi";
+
+                        const trendIcon =
+                          item.trend === "up"
+                            ? "↑"
+                            : item.trend === "down"
+                              ? "↓"
+                              : "→";
+
+                        const trendColor =
+                          item.trend === "up"
+                            ? "var(--danger)"
+                            : item.trend === "down"
+                              ? "var(--blue)"
+                              : "var(--text-3)";
+
+                        let priceHtml =
+                          '<span style="color:var(--text-3)">—</span>';
+
+                        if (p) {
+                          const arrow = p.strategy === "increase" ? "▲" : "▼";
+                          const color =
+                            p.strategy === "increase"
+                              ? "var(--danger)"
+                              : "var(--blue)";
+
+                          priceHtml = `
+                          <span style="color:${color};font-weight:500">
+                            ${arrow} ${p.suggested_price}₺
+                          </span>
+                          <span style="color:var(--text-3);font-size:11px;margin-left:4px">
+                            (${p.current_price}₺)
+                          </span>
+                        `;
+                        }
+
+                        return `
+                        <tr>
+                          <td>${p?.product_name || `Ürün #${item.product_id}`}</td>
+                          <td style="text-align:center">
+                            <span style="color:${trendColor};font-weight:600">${trendIcon}</span>
+                            ${item.velocity.toFixed(1)}/gün
+                          </td>
+                          <td style="text-align:center">
+                            ${item.predicted_weekly_demand} adet
+                          </td>
+                          <td style="text-align:center">
+                            <span class="badge ${riskCls}">${riskTxt}</span>
+                          </td>
+                          <td style="text-align:right">
+                            ${priceHtml}
+                          </td>
+                        </tr>
+                      `;
+                      })
+                      .join("")}
+                  </tbody>
+                </table>
+              </div>
+              `
+              : `<div style="color:var(--text-3)">✓ İzlenecek ürün yok</div>`;
+            if (validItems.length > 0) {
+              loadForecast(validItems[0].product_id);
+            }
+          }
+        } catch (e) {
+          document.getElementById("ml-widget-list").innerHTML =
+            '<div style="color:var(--danger);font-size:13px;padding:8px 0">ML API bağlantısı kurulamadı.</div>';
+        }
+      }
+      let forecastChartInstance = null;
+      async function loadForecast(productId, productName) {
+        try {
+          const titleEl = document.getElementById("forecast-title");
+          const metaEl = document.getElementById("forecast-meta");
+
+          if (titleEl) {
+            titleEl.textContent = `📈 ${productName || ""}`;
+          }
+
+          if (metaEl) {
+            metaEl.textContent = `Ürün ID: ${productId}`;
+          }
+          const res = await fetch(API + `/ml/forecast/${productId}`);
+          const json = await res.json();
+
+          if (!json.success) return;
+
+          const data = json.data.daily_predictions;
+
+          const labels = data.map((d) => "Gün " + d.day);
+          const values = data.map((d) => d.predicted_quantity);
+
+          const ctx = document.getElementById("forecastChart").getContext("2d");
+
+          if (forecastChartInstance) {
+            forecastChartInstance.destroy();
+          }
+
+          forecastChartInstance = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: productName, // 🔥 burada da isim
+                  data: values,
+                  fill: true,
+                  tension: 0.3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: true },
+              },
+              scales: {
+                y: { beginAtZero: true },
+              },
+            },
+          });
+
+          document.getElementById("forecast-meta").textContent =
+            `Toplam tahmin: ${json.data.total_predicted_demand} adet`;
+        } catch (e) {
+          console.error("Forecast error:", e);
+        }
+      }
+
+      document
+        .getElementById("forecastProductSelect")
+        .addEventListener("change", async (e) => {
+          const productId = e.target.value;
+
+          if (!productId) return;
+
+          const selectedText = e.target.options[e.target.selectedIndex].text;
+
+          loadForecast(productId, selectedText);
+        });
+
+      async function loadOrders() {
+        const tbody = document.getElementById("orders-tbody");
+        tbody.innerHTML =
+          '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Yükleniyor...</td></tr>';
+        try {
+          const res = await fetch(API + "/orders/");
+          const data = await res.json();
+          if (!data.success) return;
+          const orders = data.data;
+          ["pending", "preparing", "shipped", "delivered", "cancelled"].forEach(
+            (s) => {
+              document.getElementById("o-" + s).textContent = orders.filter(
+                (o) => o.status === s,
+              ).length;
+            },
+          );
+          tbody.innerHTML = orders
+            .map((o) => {
+              const s = STATUS_MAP[o.status] || {
+                label: o.status,
+                badge: "badge-gray",
+                emoji: "❓",
+              };
+              const ch = CHANNEL_MAP[o.channel || "direct"] || {
+                label: o.channel || "Direkt",
+                color: "var(--text-3)",
+                bg: "var(--bg)",
+              };
+              const date = o.created_at
+                ? new Date(o.created_at).toLocaleDateString("tr-TR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "—";
+              return `<tr><td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-3)">ORD-${String(o.id).padStart(6, "0")}</span></td><td style="font-weight:600">${o.customer_name || "—"}</td><td><strong>${o.total_amount?.toFixed(2) || 0} ₺</strong></td><td><span style="background:${ch.bg};color:${ch.color};padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700">${ch.label}</span></td><td><span class="badge ${s.badge}">${s.emoji} ${s.label}</span></td><td style="font-size:12px;color:var(--text-3)">${date}</td><td><button class="btn btn-sm" onclick="viewOrderDetail(${o.id})">Detay</button></td></tr>`;
+            })
+            .join("");
+        } catch (e) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:32px">Bağlantı hatası</td></tr>';
+        }
+      }
+
+      async function viewOrderDetail(id) {
+        try {
+          const res = await fetch(API + "/orders/" + id);
+          const data = await res.json();
+          if (data.success) {
+            const o = data.data;
+            const s = STATUS_MAP[o.status] || { label: o.status };
+            const items = (o.items || [])
+              .map(
+                (i) =>
+                  `• ${i.product_name} × ${i.quantity} — ${i.line_total?.toFixed(2)} ₺`,
+              )
+              .join("\n");
+            alert(
+              `📦 Sipariş Detayı\n\nNo: ORD-${String(o.id).padStart(6, "0")}\nMüşteri: ${o.customer_name || "—"}\nDurum: ${s.label}\nToplam: ${o.total_amount?.toFixed(2)} ₺\n\nÜrünler:\n${items || "—"}`,
+            );
+          }
+        } catch (e) {}
+      }
+
+      async function trackCargo() {
+        const val = document.getElementById("cargo-track-input").value.trim();
+        const result = document.getElementById("cargo-result");
+        if (!val) return;
+        result.innerHTML =
+          '<div style="color:var(--text-3);font-size:13px;margin-top:10px">Sorgulanıyor...</div>';
+        try {
+          const num = val.replace("ORD-", "");
+          const url = !isNaN(num)
+            ? `${API}/cargo/status/${num}`
+            : `${API}/cargo/track/${val}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.success) {
+            const d = data.data;
+            const currentStep = CARGO_STEP_INDEX[d.cargo_status] ?? 0;
+            const orderInfo = STATUS_MAP[d.order_status] || {
+              label: d.order_status,
+              badge: "badge-gray",
+            };
+            result.innerHTML = `<div style="margin-top:14px;padding:16px;background:var(--bg);border-radius:12px;border:1.5px solid var(--border)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+                <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text-3)">ORD-${String(d.order_id).padStart(6, "0")}</span>
+                <span class="badge ${orderInfo.badge}">${orderInfo.emoji || ""} ${orderInfo.label}</span>
+              </div>
+              <div class="cargo-timeline">${CARGO_STEPS.map((s, i) => `<div class="cargo-step"><div class="cargo-dot ${i < currentStep ? "done" : i === currentStep ? "active" : "pending"}">${s.emoji}</div><div><div class="cargo-step-label" style="color:${i <= currentStep ? "var(--text)" : "var(--text-3)"}">${s.label}</div>${i === currentStep ? '<div class="cargo-step-sub">📍 Şu anki durum</div>' : ""}</div></div>`).join("")}</div>
+            </div>`;
+          } else {
+            result.innerHTML = `<div class="alert alert-warn">❌ ${data.message || "Kargo bulunamadı"}</div>`;
+          }
+        } catch (e) {
+          result.innerHTML =
+            '<div class="alert alert-danger">Bağlantı hatası</div>';
+        }
+      }
+
+      async function updateCargoStatus() {
+        const id = document.getElementById("cargo-order-id").value;
+        const status = document.getElementById("cargo-new-status").value;
+        const result = document.getElementById("cargo-update-result");
+        if (!id) {
+          result.innerHTML =
+            '<div class="alert alert-warn">Sipariş ID giriniz</div>';
+          return;
+        }
+        try {
+          const res = await fetch(API + "/cargo/" + id + "/status", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ new_status: status }),
+          });
+          const data = await res.json();
+          const s = STATUS_MAP[status] || { label: status, emoji: "" };
+          result.innerHTML = data.success
+            ? `<div class="alert alert-success">✅ Güncellendi: ${s.emoji} ${s.label}</div>`
+            : `<div class="alert alert-warn">❌ ${data.message}</div>`;
+        } catch (e) {
+          result.innerHTML =
+            '<div class="alert alert-danger">Bağlantı hatası</div>';
+        }
+      }
+
+      async function loadProducts() {
+        try {
+          const res = await fetch(API + "/products/");
+          const data = await res.json();
+          if (!data.success) return;
+          const products = data.data;
+          document.getElementById("stat-total-products").textContent =
+            products.length;
+          const low = products.filter((p) => p.stock_quantity <= 20);
+          document.getElementById("stat-low-stock").textContent = low.length;
+          document.getElementById("stat-total-stock").textContent =
+            products.reduce((s, p) => s + p.stock_quantity, 0);
+          const avg = products.length
+            ? Math.round(
+                products.reduce((s, p) => s + p.price, 0) / products.length,
+              )
+            : 0;
+          document.getElementById("stat-avg-price").textContent = avg + "₺";
+          document.getElementById("products-tbody").innerHTML = products
+            .map((p) => {
+              const cls =
+                p.stock_quantity === 0
+                  ? "badge-red"
+                  : p.stock_quantity <= 10
+                    ? "badge-red"
+                    : p.stock_quantity <= 20
+                      ? "badge-yellow"
+                      : "badge-green";
+              const label =
+                p.stock_quantity === 0
+                  ? "Tükendi"
+                  : p.stock_quantity <= 10
+                    ? "Kritik"
+                    : p.stock_quantity <= 20
+                      ? "Az"
+                      : "Yeterli";
+              return `<tr><td style="color:var(--text-3);font-family:'DM Mono',monospace;font-size:12px">#${p.id}</td><td style="font-weight:600">${p.name}</td><td>${p.price?.toFixed(2)}₺</td><td style="font-family:'DM Mono',monospace">${p.stock_quantity}</td><td><span class="badge ${cls}">${label}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id},'${p.name.replace(/'/g, "\\'")}')">Sil</button></td></tr>`;
+            })
+            .join("");
+        } catch (e) {
+          document.getElementById("products-tbody").innerHTML =
+            '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:32px">Bağlantı hatası</td></tr>';
+        }
+      }
 
       async function addProduct() {
         const name = document.getElementById("new-product-name").value.trim();
@@ -969,7 +2361,7 @@ async function loadOrders(){
         const result = document.getElementById("add-product-result");
         if (!name || !price || price <= 0) {
           result.innerHTML =
-            '<div class="alert alert-warn">Ürün adı ve geçerli bir fiyat zorunludur.</div>';
+            '<div class="alert alert-warn">Ürün adı ve geçerli fiyat zorunludur</div>';
           return;
         }
         try {
@@ -980,7 +2372,7 @@ async function loadOrders(){
           });
           const data = await res.json();
           if (data.success) {
-            result.innerHTML = `<div class="alert alert-success">✅ "${data.data.name}" başarıyla eklendi. ID: #${data.data.id}</div>`;
+            result.innerHTML = `<div class="alert alert-success">✅ "${data.data.name}" eklendi</div>`;
             document.getElementById("new-product-name").value = "";
             document.getElementById("new-product-price").value = "";
             document.getElementById("new-product-stock").value = "";
@@ -990,337 +2382,143 @@ async function loadOrders(){
           }
         } catch (e) {
           result.innerHTML =
-            '<div class="alert alert-warn">Bağlantı hatası.</div>';
+            '<div class="alert alert-danger">Bağlantı hatası</div>';
         }
       }
 
       async function deleteProduct(id, name) {
-        if (!confirm(`"${name}" kalıcı olarak silinecek. Emin misiniz?`))
-          return;
+        if (!confirm(`"${name}" silinecek. Emin misiniz?`)) return;
         try {
-          const res = await fetch(API + "/products/" + id, {
-            method: "DELETE",
-          });
-          const data = await res.json();
-          if (data.success) {
-            loadProducts();
-          } else {
-            alert("❌ " + data.message);
-          }
-        } catch (e) {
-          alert("Bağlantı hatası.");
-        }
+          await fetch(API + "/products/" + id, { method: "DELETE" });
+          loadProducts();
+        } catch (e) {}
       }
 
-      // ORDERS
-      async function loadOrders() {
-        try {
-          const res = await fetch(API + "/orders/");
-          const data = await res.json();
-          if (!data.success) return;
-          const orders = data.data;
-          document.getElementById("stat-total-orders").textContent =
-            orders.length;
-          document.getElementById("stat-pending").textContent = orders.filter(
-            (o) => o.status === "pending",
-          ).length;
-          document.getElementById("stat-shipped").textContent = orders.filter(
-            (o) => o.status === "shipped",
-          ).length;
-          const rev = orders.reduce((s, o) => s + o.total_amount, 0);
-          document.getElementById("stat-revenue").textContent =
-            Math.round(rev) + "₺";
-          const statusMap = {
-            pending: "badge-yellow",
-            preparing: "badge-blue",
-            shipped: "badge-green",
-            delivered: "badge-green",
-            cancelled: "badge-red",
-          };
-          const statusTR = {
-            pending: "Bekliyor",
-            preparing: "Hazırlanıyor",
-            shipped: "Kargoda",
-            delivered: "Teslim",
-            cancelled: "İptal",
-          };
-          const tbody = document.querySelector("#orders-table tbody");
-          tbody.innerHTML = orders
-            .map(
-              (o) => `
-      <tr>
-        <td style="font-family:'DM Mono',monospace;color:var(--text-3)">ORD-${String(o.id).padStart(6, "0")}</td>
-        <td style="font-weight:500;color:var(--text)">${o.customer_name || "-"}</td>
-        <td><span class="badge ${statusMap[o.status] || "badge-gray"}">${statusTR[o.status] || o.status}</span></td>
-        <td>${o.total_amount.toFixed(2)}₺</td>
-        <td><button class="btn btn-sm" onclick="quickSend('sipariş ${o.id} detayını göster');showPage('chat')">Detay</button></td>
-      </tr>`,
-            )
-            .join("");
-        } catch (e) {
-          document.querySelector("#orders-table tbody").innerHTML =
-            '<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:16px">API bağlantısı kurulamadı</td></tr>';
-        }
-      }
-
-      // CUSTOMERS
       async function loadCustomers() {
+        const tbody = document.getElementById("customers-tbody");
         try {
           const res = await fetch(API + "/customers/");
           const data = await res.json();
           if (!data.success) return;
-          const customers = data.data;
-          const tbody = document.querySelector("#customers-table tbody");
-          tbody.innerHTML = customers
+          tbody.innerHTML = data.data
             .map(
-              (c) => `
-      <tr>
-        <td style="color:var(--text-3)">#${c.id}</td>
-        <td style="font-weight:500;color:var(--text)">${c.full_name}</td>
-        <td style="font-family:'DM Mono',monospace">${c.phone || "-"}</td>
-        <td>${c.address || "-"}</td>
-        <td><button class="btn btn-sm" onclick="quickSend('müşteri ${c.id} istatistiklerini göster');showPage('chat')">Detay</button></td>
-      </tr>`,
+              (c) =>
+                `<tr><td style="color:var(--text-3);font-family:'DM Mono',monospace;font-size:12px">#${c.id}</td><td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:var(--green-light);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-weight:700">${(c.full_name || "?")[0].toUpperCase()}</div><span style="font-weight:600">${c.full_name || "—"}</span></div></td><td style="font-family:'DM Mono',monospace">${c.phone || "—"}</td><td style="color:var(--text-3)">${c.address || "—"}</td></tr>`,
             )
             .join("");
         } catch (e) {
-          document.querySelector("#customers-table tbody").innerHTML =
-            '<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:16px">API bağlantısı kurulamadı</td></tr>';
+          tbody.innerHTML =
+            '<tr><td colspan="4" style="text-align:center;color:var(--red);padding:32px">Bağlantı hatası</td></tr>';
         }
       }
 
-      async function searchCustomer() {
-        const phone = document
-          .getElementById("customer-phone-input")
-          .value.trim();
-        if (!phone) return;
-        const result = document.getElementById("customer-result");
-        result.innerHTML =
-          '<p style="color:var(--text-3);font-size:13px">Aranıyor...</p>';
+      async function syncMarketplace(channel) {
+        const el = document.getElementById(
+          channel === "trendyol" ? "ty-result" : "hb-result",
+        );
+        el.innerHTML =
+          '<div style="color:var(--text-3);font-size:13px;margin-top:8px">⏳ Çekiliyor...</div>';
         try {
-          const res = await fetch(API + "/customers/phone/" + phone);
+          const res = await fetch(API + `/marketplace/sync-${channel}`, {
+            method: "POST",
+          });
+          if (!res.ok) throw new Error();
           const data = await res.json();
           if (data.success) {
-            const c = data.data;
-            result.innerHTML = `<div class="alert alert-success">
-        <strong>${c.full_name}</strong> · ${c.phone} · ${c.address || "Adres yok"}
-      </div>`;
-          } else {
-            result.innerHTML = `<div class="alert alert-warn">Müşteri bulunamadı.</div>`;
-          }
+            const w = data.orders?.filter((o) => o.stock_warning) || [];
+            el.innerHTML = `<div class="alert alert-success">✅ ${(data.orders || []).length} yeni sipariş alındı${data.skipped_count ? ` · ${data.skipped_count} tekrar atlandı` : ""}</div>${w.length ? `<div class="alert alert-warn">⚠️ Stok tükendi: ${w.map((o) => o.product_name).join(", ")}</div>` : ""}`;
+          } else
+            el.innerHTML = `<div class="alert alert-warn">❌ ${data.message || "Hata"}</div>`;
         } catch (e) {
-          result.innerHTML =
-            '<div class="alert alert-warn">Bağlantı hatası.</div>';
+          el.innerHTML =
+            '<div class="alert alert-warn" style="margin-top:8px">⚠️ Bu özellik Telegram botu üzerinden kullanılabilir: "🛒 Marketplace" menüsünden Trendyol/Hepsiburada siparişlerini çekebilirsiniz.</div>';
         }
       }
 
-      async function addCustomer() {
-        const name = document.getElementById("new-name").value;
-        const phone = document.getElementById("new-phone").value;
-        const address = document.getElementById("new-address").value;
-        if (!name || !phone) {
-          alert("Ad ve telefon zorunlu.");
-          return;
+      async function loadChannelReport() {
+        const el = document.getElementById("channel-report-content");
+        try {
+          const res = await fetch(API + "/orders/");
+          const data = await res.json();
+          if (!data.success) {
+            el.textContent = "Veri alınamadı";
+            return;
+          }
+          const today = new Date().toDateString();
+          const todayOrders = data.data.filter(
+            (o) =>
+              o.created_at && new Date(o.created_at).toDateString() === today,
+          );
+          const channels = {
+            trendyol: { count: 0, rev: 0 },
+            hepsiburada: { count: 0, rev: 0 },
+            direct: { count: 0, rev: 0 },
+          };
+          todayOrders.forEach((o) => {
+            const ch = o.channel || "direct";
+            if (channels[ch]) {
+              channels[ch].count++;
+              channels[ch].rev += o.total_amount || 0;
+            }
+          });
+          const icons = { trendyol: "🟠", hepsiburada: "🟡", direct: "🟢" };
+          el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">${Object.entries(
+            channels,
+          )
+            .map(([ch, d]) => {
+              const info = CHANNEL_MAP[ch];
+              return `<div style="background:${info.bg};border-radius:12px;padding:16px;text-align:center"><div style="font-size:24px;margin-bottom:8px">${icons[ch]}</div><div style="font-size:13px;font-weight:700;color:${info.color}">${info.label}</div><div style="font-size:26px;font-weight:800;margin:4px 0">${d.count}</div><div style="font-size:12px;color:var(--text-3)">sipariş · ${d.rev.toFixed(0)} ₺</div></div>`;
+            })
+            .join("")}</div>`;
+        } catch (e) {
+          el.textContent = "Bağlantı hatası";
         }
-        const result = document.getElementById("add-customer-result");
+      }
+
+      async function sendChat() {
+        const input = document.getElementById("chat-input");
+        const messages = document.getElementById("chat-messages");
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = "";
+        messages.innerHTML += `<div class="msg user"><div class="msg-avatar user">S</div><div class="msg-bubble user">${text}</div></div>`;
+        const tid = "t" + Date.now();
+        messages.innerHTML += `<div class="msg" id="${tid}"><div class="msg-avatar bot">AI</div><div class="msg-bubble bot" style="color:var(--text-3)">Düşünüyor...</div></div>`;
+        messages.scrollTop = messages.scrollHeight;
         try {
           const res = await fetch(API + "/agent/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              message: `yeni müşteri ekle: isim "${name}", telefon "${phone}", adres "${address}"`,
-            }),
+            body: JSON.stringify({ message: text }),
           });
           const data = await res.json();
-          result.innerHTML = `<div class="alert alert-success">${data.reply}</div>`;
-          loadCustomers();
+          document.getElementById(tid)?.remove();
+          messages.innerHTML += `<div class="msg"><div class="msg-avatar bot">AI</div><div class="msg-bubble bot">${data.reply || "Yanıt alınamadı"}</div></div>`;
+          messages.scrollTop = messages.scrollHeight;
         } catch (e) {
-          result.innerHTML =
-            '<div class="alert alert-warn">Bağlantı hatası.</div>';
+          document.getElementById(tid)?.remove();
+          messages.innerHTML += `<div class="msg"><div class="msg-avatar bot">AI</div><div class="msg-bubble bot" style="color:var(--red)">Bağlantı hatası</div></div>`;
         }
       }
-async function viewOrderDetail(id){
-  try{const res=await fetch(API+'/orders/'+id);const data=await res.json();if(data.success){const o=data.data;const s=STATUS_MAP[o.status]||{label:o.status};const items=(o.items||[]).map(i=>`• ${i.product_name} × ${i.quantity} — ${i.line_total?.toFixed(2)} ₺`).join('\n');alert(`📦 Sipariş Detayı\n\nNo: ORD-${String(o.id).padStart(6,'0')}\nMüşteri: ${o.customer_name||'—'}\nDurum: ${s.label}\nToplam: ${o.total_amount?.toFixed(2)} ₺\n\nÜrünler:\n${items||'—'}`);}
-  }catch(e){}}
-
-      async function trackCargo() {
-        const num = document.getElementById("tracking-input").value.trim();
-        if (!num) return;
-        const result = document.getElementById("cargo-result");
-        result.innerHTML =
-          '<p style="color:var(--text-3);font-size:13px">Sorgulanıyor...</p>';
-        try {
-          const res = await fetch(API + "/cargo/track/" + num);
-          const data = await res.json();
-          if (data.success) {
-            const d = data.data;
-            const statusMap = {
-              label_created: "Etiket Oluşturuldu",
-              in_preparation: "Hazırlanıyor",
-              in_transit: "Kargoda",
-              delivered: "Teslim Edildi",
-            };
-            result.innerHTML = `<div class="alert alert-success">
-        <strong>${d.tracking_number}</strong> · <span class="badge badge-blue">${statusMap[d.cargo_status] || d.cargo_status}</span>
-        · Sipariş durumu: ${d.order_status}
-async function trackCargo(){
-  const val=document.getElementById('cargo-track-input').value.trim();
-  const result=document.getElementById('cargo-result');
-  if(!val)return;
-  result.innerHTML='<div style="color:var(--text-3);font-size:13px;margin-top:10px">Sorgulanıyor...</div>';
-  try{
-    const num=val.replace('ORD-','');
-    const url=!isNaN(num)?`${API}/cargo/status/${num}`:`${API}/cargo/track/${val}`;
-    const res=await fetch(url);const data=await res.json();
-    if(data.success){
-      const d=data.data;
-      const currentStep=CARGO_STEP_INDEX[d.cargo_status]??0;
-      const orderInfo=STATUS_MAP[d.order_status]||{label:d.order_status,badge:'badge-gray'};
-      result.innerHTML=`<div style="margin-top:14px;padding:16px;background:var(--bg);border-radius:12px;border:1.5px solid var(--border)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-          <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text-3)">ORD-${String(d.order_id).padStart(6,'0')}</span>
-          <span class="badge ${orderInfo.badge}">${orderInfo.emoji||''} ${orderInfo.label}</span>
-        </div>
-        <div class="cargo-timeline">${CARGO_STEPS.map((s,i)=>`<div class="cargo-step"><div class="cargo-dot ${i<currentStep?'done':i===currentStep?'active':'pending'}">${s.emoji}</div><div><div class="cargo-step-label" style="color:${i<=currentStep?'var(--text)':'var(--text-3)'}">${s.label}</div>${i===currentStep?'<div class="cargo-step-sub">📍 Şu anki durum</div>':''}</div></div>`).join('')}</div>
-      </div>`;
-          } else {
-            result.innerHTML = `<div class="alert alert-warn">${data.message}</div>`;
-          }
-        } catch (e) {
-          result.innerHTML =
-            '<div class="alert alert-warn">Bağlantı hatası.</div>';
+      function quickSend(t) {
+        document.getElementById("chat-input").value = t;
+        sendChat();
+      }
+      function chatKey(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendChat();
         }
       }
-    }else{result.innerHTML=`<div class="alert alert-warn">❌ ${data.message||'Kargo bulunamadı'}</div>`;}
-  }catch(e){result.innerHTML='<div class="alert alert-danger">Bağlantı hatası</div>';}
-}
-
-      async function updateCargoStatus() {
-        const id = document.getElementById("cargo-order-id").value;
-        const status = document.getElementById("cargo-new-status").value;
-        if (!id) return;
-        const result = document.getElementById("cargo-update-result");
-        try {
-          const res = await fetch(API + "/cargo/" + id + "/status", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ new_status: status }),
-          });
-          const data = await res.json();
-          result.innerHTML = data.success
-            ? `<div class="alert alert-success">✓ Güncellendi: ${data.data.order_status}</div>`
-            : `<div class="alert alert-warn">${data.message}</div>`;
-        } catch (e) {
-          result.innerHTML =
-            '<div class="alert alert-warn">Bağlantı hatası.</div>';
-        }
+      function reportChat(t) {
+        quickSend(t);
+        showPage("chat");
       }
-async function updateCargoStatus(){
-  const id=document.getElementById('cargo-order-id').value;
-  const status=document.getElementById('cargo-new-status').value;
-  const result=document.getElementById('cargo-update-result');
-  if(!id){result.innerHTML='<div class="alert alert-warn">Sipariş ID giriniz</div>';return;}
-  try{
-    const res=await fetch(API+'/cargo/'+id+'/status',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({new_status:status})});
-    const data=await res.json();
-    const s=STATUS_MAP[status]||{label:status,emoji:''};
-    result.innerHTML=data.success?`<div class="alert alert-success">✅ Güncellendi: ${s.emoji} ${s.label}</div>`:`<div class="alert alert-warn">❌ ${data.message}</div>`;
-  }catch(e){result.innerHTML='<div class="alert alert-danger">Bağlantı hatası</div>';}
-}
-
-async function loadProducts(){
-  try{
-    const res=await fetch(API+'/products/');const data=await res.json();if(!data.success)return;
-    const products=data.data;
-    document.getElementById('stat-total-products').textContent=products.length;
-    const low=products.filter(p=>p.stock_quantity<=20);
-    document.getElementById('stat-low-stock').textContent=low.length;
-    document.getElementById('stat-total-stock').textContent=products.reduce((s,p)=>s+p.stock_quantity,0);
-    const avg=products.length?Math.round(products.reduce((s,p)=>s+p.price,0)/products.length):0;
-    document.getElementById('stat-avg-price').textContent=avg+'₺';
-    document.getElementById('products-tbody').innerHTML=products.map(p=>{
-      const cls=p.stock_quantity===0?'badge-red':p.stock_quantity<=10?'badge-red':p.stock_quantity<=20?'badge-yellow':'badge-green';
-      const label=p.stock_quantity===0?'Tükendi':p.stock_quantity<=10?'Kritik':p.stock_quantity<=20?'Az':'Yeterli';
-      return`<tr><td style="color:var(--text-3);font-family:'DM Mono',monospace;font-size:12px">#${p.id}</td><td style="font-weight:600">${p.name}</td><td>${p.price?.toFixed(2)}₺</td><td style="font-family:'DM Mono',monospace">${p.stock_quantity}</td><td><span class="badge ${cls}">${label}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id},'${p.name.replace(/'/g,"\\'")}')">Sil</button></td></tr>`;
-    }).join('');
-  }catch(e){document.getElementById('products-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--red);padding:32px">Bağlantı hatası</td></tr>';}
-}
-
-async function addProduct(){
-  const name=document.getElementById('new-product-name').value.trim();
-  const price=parseFloat(document.getElementById('new-product-price').value);
-  const stock=parseInt(document.getElementById('new-product-stock').value)||0;
-  const result=document.getElementById('add-product-result');
-  if(!name||!price||price<=0){result.innerHTML='<div class="alert alert-warn">Ürün adı ve geçerli fiyat zorunludur</div>';return;}
-  try{
-    const res=await fetch(API+'/products/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,price,stock_quantity:stock})});
-    const data=await res.json();
-    if(data.success){result.innerHTML=`<div class="alert alert-success">✅ "${data.data.name}" eklendi</div>`;document.getElementById('new-product-name').value='';document.getElementById('new-product-price').value='';document.getElementById('new-product-stock').value='';loadProducts();}
-    else{result.innerHTML=`<div class="alert alert-warn">❌ ${data.message}</div>`;}
-  }catch(e){result.innerHTML='<div class="alert alert-danger">Bağlantı hatası</div>';}
-}
-
-async function deleteProduct(id,name){
-  if(!confirm(`"${name}" silinecek. Emin misiniz?`))return;
-  try{await fetch(API+'/products/'+id,{method:'DELETE'});loadProducts();}catch(e){}
-}
-
-async function loadCustomers(){
-  const tbody=document.getElementById('customers-tbody');
-  try{
-    const res=await fetch(API+'/customers/');const data=await res.json();if(!data.success)return;
-    tbody.innerHTML=data.data.map(c=>`<tr><td style="color:var(--text-3);font-family:'DM Mono',monospace;font-size:12px">#${c.id}</td><td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:var(--green-light);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-weight:700">${(c.full_name||'?')[0].toUpperCase()}</div><span style="font-weight:600">${c.full_name||'—'}</span></div></td><td style="font-family:'DM Mono',monospace">${c.phone||'—'}</td><td style="color:var(--text-3)">${c.address||'—'}</td></tr>`).join('');
-  }catch(e){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--red);padding:32px">Bağlantı hatası</td></tr>';}
-}
-
-async function syncMarketplace(channel){
-  const el=document.getElementById(channel==='trendyol'?'ty-result':'hb-result');
-  el.innerHTML='<div style="color:var(--text-3);font-size:13px;margin-top:8px">⏳ Çekiliyor...</div>';
-  try{
-    const res=await fetch(API+`/marketplace/sync-${channel}`,{method:'POST'});
-    if(!res.ok)throw new Error();
-    const data=await res.json();
-    if(data.success){const w=data.orders?.filter(o=>o.stock_warning)||[];el.innerHTML=`<div class="alert alert-success">✅ ${(data.orders||[]).length} yeni sipariş alındı${data.skipped_count?` · ${data.skipped_count} tekrar atlandı`:''}</div>${w.length?`<div class="alert alert-warn">⚠️ Stok tükendi: ${w.map(o=>o.product_name).join(', ')}</div>`:''}`;}
-    else el.innerHTML=`<div class="alert alert-warn">❌ ${data.message||'Hata'}</div>`;
-  }catch(e){el.innerHTML='<div class="alert alert-warn" style="margin-top:8px">⚠️ Bu özellik Telegram botu üzerinden kullanılabilir: "🛒 Marketplace" menüsünden Trendyol/Hepsiburada siparişlerini çekebilirsiniz.</div>';}
-}
-
-async function loadChannelReport(){
-  const el=document.getElementById('channel-report-content');
-  try{
-    const res=await fetch(API+'/orders/');const data=await res.json();if(!data.success){el.textContent='Veri alınamadı';return;}
-    const today=new Date().toDateString();
-    const todayOrders=data.data.filter(o=>o.created_at&&new Date(o.created_at).toDateString()===today);
-    const channels={trendyol:{count:0,rev:0},hepsiburada:{count:0,rev:0},direct:{count:0,rev:0}};
-    todayOrders.forEach(o=>{const ch=o.channel||'direct';if(channels[ch]){channels[ch].count++;channels[ch].rev+=(o.total_amount||0);}});
-    const icons={trendyol:'🟠',hepsiburada:'🟡',direct:'🟢'};
-    el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">${Object.entries(channels).map(([ch,d])=>{const info=CHANNEL_MAP[ch];return`<div style="background:${info.bg};border-radius:12px;padding:16px;text-align:center"><div style="font-size:24px;margin-bottom:8px">${icons[ch]}</div><div style="font-size:13px;font-weight:700;color:${info.color}">${info.label}</div><div style="font-size:26px;font-weight:800;margin:4px 0">${d.count}</div><div style="font-size:12px;color:var(--text-3)">sipariş · ${d.rev.toFixed(0)} ₺</div></div>`;}).join('')}</div>`;
-  }catch(e){el.textContent='Bağlantı hatası';}
-}
-
-async function sendChat(){
-  const input=document.getElementById('chat-input');const messages=document.getElementById('chat-messages');
-  const text=input.value.trim();if(!text)return;input.value='';
-  messages.innerHTML+=`<div class="msg user"><div class="msg-avatar user">S</div><div class="msg-bubble user">${text}</div></div>`;
-  const tid='t'+Date.now();
-  messages.innerHTML+=`<div class="msg" id="${tid}"><div class="msg-avatar bot">AI</div><div class="msg-bubble bot" style="color:var(--text-3)">Düşünüyor...</div></div>`;
-  messages.scrollTop=messages.scrollHeight;
-  try{
-    const res=await fetch(API+'/agent/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
-    const data=await res.json();
-    document.getElementById(tid)?.remove();
-    messages.innerHTML+=`<div class="msg"><div class="msg-avatar bot">AI</div><div class="msg-bubble bot">${data.reply||'Yanıt alınamadı'}</div></div>`;
-    messages.scrollTop=messages.scrollHeight;
-  }catch(e){document.getElementById(tid)?.remove();messages.innerHTML+=`<div class="msg"><div class="msg-avatar bot">AI</div><div class="msg-bubble bot" style="color:var(--red)">Bağlantı hatası</div></div>`;}
-}
-function quickSend(t){document.getElementById('chat-input').value=t;sendChat();}
-function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
-function reportChat(t){quickSend(t);showPage('chat');}
 
       async function exportExcel(table) {
         const result = document.getElementById("export-result");
         result.innerHTML =
-          '<p style="color:var(--text-3);font-size:13px">Oluşturuluyor...</p>';
+          '<div class="alert" style="background:var(--bg);color:var(--text-3)">⏳ Oluşturuluyor...</div>';
         try {
           const res = await fetch(API + "/agent/chat", {
             method: "POST",
@@ -1333,101 +2531,234 @@ function reportChat(t){quickSend(t);showPage('chat');}
           result.innerHTML = `<div class="alert alert-success">${data.reply}</div>`;
         } catch (e) {
           result.innerHTML =
-            '<div class="alert alert-warn">Bağlantı hatası.</div>';
+            '<div class="alert alert-danger">Bağlantı hatası</div>';
         }
       }
 
-      function reportChat(text) {
-        quickSend(text);
-        showPage("chat");
+      let _lastTicketCount = 0,
+        _notifPermission = false,
+        _ticketPollInterval = null;
+
+      async function initTicketNotifications() {
+        if (!("Notification" in window)) return;
+        if (Notification.permission === "granted") {
+          _notifPermission = true;
+        } else if (Notification.permission !== "denied") {
+          const p = await Notification.requestPermission();
+          _notifPermission = p === "granted";
+        }
       }
+
+      function _playAlertSound() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = 880;
+          osc.type = "sine";
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.4);
+        } catch (e) {}
+      }
+
+      function _fireNotification(count) {
+        _playAlertSound();
+        if (_notifPermission)
+          new Notification("🔔 Yeni Destek Talebi", {
+            body: `${count} bekleyen talep var`,
+            tag: "ticket-alert",
+          });
+        const p = document.getElementById("ticket-popup");
+        if (p) {
+          p.classList.add("show");
+          setTimeout(() => p.classList.remove("show"), 5000);
+        }
+      }
+
+      async function loadTickets(statusFilter = "open") {
+        const list = document.getElementById("tickets-list");
+        if (!list) return;
+        list.innerHTML =
+          '<div style="color:var(--text-3);text-align:center;padding:40px">Yükleniyor...</div>';
+        try {
+          const url =
+            statusFilter === "all"
+              ? `${API}/tickets/`
+              : `${API}/tickets/?status=${statusFilter}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          const tickets = data.data || [];
+          const openCount = tickets.filter((t) => t.status === "open").length;
+          document.getElementById("ticket-open-count").textContent = openCount;
+          document.getElementById("ticket-total-count").textContent =
+            tickets.length;
+          const b = document.getElementById("ticket-badge");
+          if (b) {
+            if (openCount > 0) {
+              b.textContent = openCount;
+              b.style.display = "inline";
+            } else b.style.display = "none";
+          }
+          if (openCount > _lastTicketCount && _lastTicketCount >= 0)
+            _fireNotification(openCount);
+          _lastTicketCount = openCount;
+          const allRes = await fetch(`${API}/tickets/`);
+          const allData = await allRes.json();
+          const all = allData.data || [];
+          document.getElementById("tk-open").textContent = all.filter(
+            (t) => t.status === "open",
+          ).length;
+          document.getElementById("tk-iade").textContent = all.filter(
+            (t) => t.topic === "İade",
+          ).length;
+          document.getElementById("tk-iptal").textContent = all.filter(
+            (t) => t.topic === "İptal",
+          ).length;
+          document.getElementById("tk-resolved").textContent = all.filter(
+            (t) => t.status === "resolved",
+          ).length;
+          if (!tickets.length) {
+            list.innerHTML =
+              '<div style="color:var(--text-3);text-align:center;padding:40px">Gösterilecek talep yok 🎉</div>';
+            return;
+          }
+          const topicColors = {
+            İade: "badge-yellow",
+            İptal: "badge-red",
+            Destek: "badge-blue",
+            Kargo: "badge-blue",
+            Diğer: "badge-gray",
+          };
+          const urgency = {
+            open: "urgent",
+            in_progress: "medium",
+            resolved: "low",
+          };
+          const statusLabels = {
+            open: "Açık",
+            in_progress: "İşlemde",
+            resolved: "Çözüldü",
+          };
+          list.innerHTML = tickets
+            .map((t) => {
+              const tgLink = t.telegram_user_id
+                ? `<a href="https://t.me/+${t.telegram_user_id}" target="_blank" class="ticket-tg">📱 Telegram'da Yaz</a>`
+                : "";
+              const created = t.created_at
+                ? new Date(t.created_at).toLocaleString("tr-TR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "—";
+              const msgShort =
+                (t.message || "").replace(/\n/g, " ").substring(0, 120) +
+                ((t.message || "").length > 120 ? "…" : "");
+              const resolveBtn =
+                t.status !== "resolved"
+                  ? `<button class="btn btn-sm btn-primary" onclick="resolveTicket(${t.id})">✓ Çözüldü</button>`
+                  : '<span style="color:var(--green-dark);font-size:12px;font-weight:600">✅ Çözüldü</span>';
+              return `<div class="ticket-card ${urgency[t.status] || "low"}">
+              <div class="ticket-avatar">${(t.customer_name || "?")[0].toUpperCase()}</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                  <div class="ticket-name">${t.customer_name || "Bilinmiyor"}</div>
+                  <span class="badge ${topicColors[t.topic] || "badge-gray"}">${t.topic || "Diğer"}</span>
+                  <span style="font-size:11px;color:var(--text-3);margin-left:auto">#${t.id} · ${statusLabels[t.status] || t.status}</span>
+                </div>
+                <div class="ticket-msg">${msgShort}</div>
+                <div class="ticket-footer">
+                  <span class="ticket-time">🕐 ${created}</span>
+                  ${t.customer_phone ? `<span style="font-size:12px;color:var(--text-3)">📞 ${t.customer_phone}</span>` : ""}
+                  ${tgLink}
+                </div>
+              </div>
+              <div style="flex-shrink:0">${resolveBtn}</div>
+            </div>`;
+            })
+            .join("");
+        } catch (e) {
+          list.innerHTML =
+            '<div style="color:var(--red);text-align:center;padding:40px">⚠️ Bağlantı hatası</div>';
+        }
+      }
+
+      async function resolveTicket(id) {
+        try {
+          const res = await fetch(`${API}/tickets/${id}/resolve`, {
+            method: "PATCH",
+          });
+          const data = await res.json();
+          if (data.success) {
+            const f =
+              document.querySelector("#ticket-filter-btns .btn-primary")
+                ?.dataset?.filter || "open";
+            loadTickets(f);
+          }
+        } catch (e) {}
+      }
+
+      function setTicketFilter(btn, filter) {
+        document
+          .querySelectorAll("#ticket-filter-btns .btn")
+          .forEach((b) => b.classList.remove("btn-primary"));
+        btn.classList.add("btn-primary");
+        loadTickets(filter);
+      }
+
+      function startTicketPolling() {
+        if (_ticketPollInterval) clearInterval(_ticketPollInterval);
+        _ticketPollInterval = setInterval(() => {
+          const isOn = document
+            .getElementById("page-tickets")
+            ?.classList.contains("active");
+          const f =
+            document.querySelector("#ticket-filter-btns .btn-primary")?.dataset
+              ?.filter || "open";
+          if (isOn) loadTickets(f);
+          else {
+            fetch(`${API}/tickets/?status=open`)
+              .then((r) => r.json())
+              .then((d) => {
+                const cnt = (d.data || []).length;
+                const b = document.getElementById("ticket-badge");
+                if (b) {
+                  if (cnt > 0) {
+                    b.textContent = cnt;
+                    b.style.display = "inline";
+                  } else b.style.display = "none";
+                }
+                if (cnt > _lastTicketCount && _lastTicketCount >= 0)
+                  _fireNotification(cnt);
+                _lastTicketCount = cnt;
+              })
+              .catch(() => {});
+          }
+        }, 15000);
+      }
+
+      window.addEventListener("load", () => {
+        initClock();
+        loadDashboard();
+        startTicketPolling();
+        fetch(`${API}/tickets/?status=open`)
+          .then((r) => r.json())
+          .then((d) => {
+            const cnt = (d.data || []).length;
+            _lastTicketCount = cnt;
+            const b = document.getElementById("ticket-badge");
+            if (b && cnt > 0) {
+              b.textContent = cnt;
+              b.style.display = "inline";
+            }
+          })
+          .catch(() => {});
+      });
     </script>
   </body>
-async function exportExcel(table){
-  const result=document.getElementById('export-result');
-  result.innerHTML='<div class="alert" style="background:var(--bg);color:var(--text-3)">⏳ Oluşturuluyor...</div>';
-  try{const res=await fetch(API+'/agent/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`${table} tablosunu excele aktar`})});const data=await res.json();result.innerHTML=`<div class="alert alert-success">${data.reply}</div>`;}
-  catch(e){result.innerHTML='<div class="alert alert-danger">Bağlantı hatası</div>';}
-}
-
-let _lastTicketCount=0,_notifPermission=false,_ticketPollInterval=null;
-
-async function initTicketNotifications(){if(!('Notification' in window))return;if(Notification.permission==='granted'){_notifPermission=true;}else if(Notification.permission!=='denied'){const p=await Notification.requestPermission();_notifPermission=p==='granted';}}
-
-function _playAlertSound(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=880;osc.type='sine';gain.gain.setValueAtTime(0.3,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.4);}catch(e){}}
-
-function _fireNotification(count){_playAlertSound();if(_notifPermission)new Notification('🔔 Yeni Destek Talebi',{body:`${count} bekleyen talep var`,tag:'ticket-alert'});const p=document.getElementById('ticket-popup');if(p){p.classList.add('show');setTimeout(()=>p.classList.remove('show'),5000);}}
-
-async function loadTickets(statusFilter='open'){
-  const list=document.getElementById('tickets-list');if(!list)return;
-  list.innerHTML='<div style="color:var(--text-3);text-align:center;padding:40px">Yükleniyor...</div>';
-  try{
-    const url=statusFilter==='all'?`${API}/tickets/`:`${API}/tickets/?status=${statusFilter}`;
-    const res=await fetch(url);const data=await res.json();const tickets=data.data||[];
-    const openCount=tickets.filter(t=>t.status==='open').length;
-    document.getElementById('ticket-open-count').textContent=openCount;
-    document.getElementById('ticket-total-count').textContent=tickets.length;
-    const b=document.getElementById('ticket-badge');if(b){if(openCount>0){b.textContent=openCount;b.style.display='inline';}else b.style.display='none';}
-    if(openCount>_lastTicketCount&&_lastTicketCount>=0)_fireNotification(openCount);
-    _lastTicketCount=openCount;
-    const allRes=await fetch(`${API}/tickets/`);const allData=await allRes.json();const all=allData.data||[];
-    document.getElementById('tk-open').textContent=all.filter(t=>t.status==='open').length;
-    document.getElementById('tk-iade').textContent=all.filter(t=>t.topic==='İade').length;
-    document.getElementById('tk-iptal').textContent=all.filter(t=>t.topic==='İptal').length;
-    document.getElementById('tk-resolved').textContent=all.filter(t=>t.status==='resolved').length;
-    if(!tickets.length){list.innerHTML='<div style="color:var(--text-3);text-align:center;padding:40px">Gösterilecek talep yok 🎉</div>';return;}
-    const topicColors={İade:'badge-yellow',İptal:'badge-red',Destek:'badge-blue',Kargo:'badge-blue',Diğer:'badge-gray'};
-    const urgency={open:'urgent',in_progress:'medium',resolved:'low'};
-    const statusLabels={open:'Açık',in_progress:'İşlemde',resolved:'Çözüldü'};
-    list.innerHTML=tickets.map(t=>{
-      const tgLink=t.telegram_user_id?`<a href="https://t.me/+${t.telegram_user_id}" target="_blank" class="ticket-tg">📱 Telegram'da Yaz</a>`:'';
-      const created=t.created_at?new Date(t.created_at).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
-      const msgShort=(t.message||'').replace(/\n/g,' ').substring(0,120)+((t.message||'').length>120?'…':'');
-      const resolveBtn=t.status!=='resolved'?`<button class="btn btn-sm btn-primary" onclick="resolveTicket(${t.id})">✓ Çözüldü</button>`:'<span style="color:var(--green-dark);font-size:12px;font-weight:600">✅ Çözüldü</span>';
-      return`<div class="ticket-card ${urgency[t.status]||'low'}">
-        <div class="ticket-avatar">${(t.customer_name||'?')[0].toUpperCase()}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <div class="ticket-name">${t.customer_name||'Bilinmiyor'}</div>
-            <span class="badge ${topicColors[t.topic]||'badge-gray'}">${t.topic||'Diğer'}</span>
-            <span style="font-size:11px;color:var(--text-3);margin-left:auto">#${t.id} · ${statusLabels[t.status]||t.status}</span>
-          </div>
-          <div class="ticket-msg">${msgShort}</div>
-          <div class="ticket-footer">
-            <span class="ticket-time">🕐 ${created}</span>
-            ${t.customer_phone?`<span style="font-size:12px;color:var(--text-3)">📞 ${t.customer_phone}</span>`:''}
-            ${tgLink}
-          </div>
-        </div>
-        <div style="flex-shrink:0">${resolveBtn}</div>
-      </div>`;
-    }).join('');
-  }catch(e){list.innerHTML='<div style="color:var(--red);text-align:center;padding:40px">⚠️ Bağlantı hatası</div>';}
-}
-
-async function resolveTicket(id){
-  try{const res=await fetch(`${API}/tickets/${id}/resolve`,{method:'PATCH'});const data=await res.json();if(data.success){const f=document.querySelector('#ticket-filter-btns .btn-primary')?.dataset?.filter||'open';loadTickets(f);}}catch(e){}
-}
-
-function setTicketFilter(btn,filter){
-  document.querySelectorAll('#ticket-filter-btns .btn').forEach(b=>b.classList.remove('btn-primary'));
-  btn.classList.add('btn-primary');loadTickets(filter);
-}
-
-function startTicketPolling(){
-  if(_ticketPollInterval)clearInterval(_ticketPollInterval);
-  _ticketPollInterval=setInterval(()=>{
-    const isOn=document.getElementById('page-tickets')?.classList.contains('active');
-    const f=document.querySelector('#ticket-filter-btns .btn-primary')?.dataset?.filter||'open';
-    if(isOn)loadTickets(f);
-    else{fetch(`${API}/tickets/?status=open`).then(r=>r.json()).then(d=>{const cnt=(d.data||[]).length;const b=document.getElementById('ticket-badge');if(b){if(cnt>0){b.textContent=cnt;b.style.display='inline';}else b.style.display='none';}if(cnt>_lastTicketCount&&_lastTicketCount>=0)_fireNotification(cnt);_lastTicketCount=cnt;}).catch(()=>{});}
-  },15000);
-}
-
-window.addEventListener('load',()=>{
-  initClock();loadDashboard();startTicketPolling();
-  fetch(`${API}/tickets/?status=open`).then(r=>r.json()).then(d=>{const cnt=(d.data||[]).length;_lastTicketCount=cnt;const b=document.getElementById('ticket-badge');if(b&&cnt>0){b.textContent=cnt;b.style.display='inline';}}).catch(()=>{});
-});
-</script>
-</body>
 </html>
