@@ -276,6 +276,69 @@ def tool_export_to_excel(table: str) -> str:
         db.close()
 
 
+@tool
+def tool_revenue_report(period: str = "today") -> str:
+    """
+    Satış cirosunu hesaplar ve raporlar.
+    period: 'today' (bugün), 'week' (bu hafta), 'month' (bu ay), 'all' (tüm zamanlar)
+    Kullanım: 'bugünkü ciro', 'bu haftaki satış', 'aylık ciro', 'toplam ciro'
+    """
+    from datetime import datetime, timedelta
+    from sqlalchemy import func
+
+    db = SessionLocal()
+    try:
+        now = datetime.now()
+        if period == "today":
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            label = "Bugün"
+        elif period == "week":
+            start = now - timedelta(days=now.weekday())
+            start = start.replace(hour=0, minute=0, second=0, microsecond=0)
+            label = "Bu Hafta"
+        elif period == "month":
+            start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            label = "Bu Ay"
+        else:
+            start = None
+            label = "Tüm Zamanlar"
+
+        query = db.query(Order).filter(Order.status != "cancelled")
+        if start:
+            query = query.filter(Order.created_at >= start)
+
+        orders = query.all()
+        total = sum(o.total_amount or 0 for o in orders)
+        count = len(orders)
+
+        if count == 0:
+            return f"📊 {label} için henüz tamamlanmış sipariş yok."
+
+        # Kanal bazlı dağılım
+        channels = {}
+        for o in orders:
+            ch = getattr(o, "channel", None) or "direct"
+            channels[ch] = channels.get(ch, 0) + (o.total_amount or 0)
+
+        channel_labels = {"trendyol": "Trendyol 🟠", "hepsiburada": "Hepsiburada 🟡", "direct": "Direkt 🟢"}
+        ch_lines = "\n".join(
+            f"  • {channel_labels.get(ch, ch)}: {rev:,.2f}₺"
+            for ch, rev in sorted(channels.items(), key=lambda x: -x[1])
+        )
+
+        avg = total / count
+        return (
+            f"📊 {label} Ciro Raporu\n"
+            f"{'─'*30}\n"
+            f"💰 Toplam Ciro: {total:,.2f}₺\n"
+            f"📦 Sipariş Sayısı: {count}\n"
+            f"📈 Ortalama Sipariş: {avg:,.2f}₺\n"
+            f"\nKanal Dağılımı:\n{ch_lines}"
+        )
+    finally:
+        db.close()
+
+
 all_tools = [
     tool_list_products,
     tool_check_stock,
@@ -295,4 +358,5 @@ all_tools = [
     tool_track_cargo,
     tool_get_estimated_delivery,
     tool_export_to_excel,
+    tool_revenue_report,
 ]
