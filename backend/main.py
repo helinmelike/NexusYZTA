@@ -2,6 +2,9 @@ from core.config import settings
 print("DATABASE_URL:", settings.database_url)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 from api.routers import cargo, orders, customers, agent, products, ml
 from api.routers.tickets import router as tickets_router
@@ -22,3 +25,12 @@ app.include_router(products.router,  prefix="/products",  tags=["products"])
 app.include_router(agent.router,     prefix="/agent",     tags=["agent"])
 app.include_router(tickets_router,   prefix="/tickets",   tags=["tickets"])
 app.include_router(ml.router,        prefix="/ml",        tags=["ml"])
+
+# Frontend static files
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
+if os.path.exists(FRONTEND_DIR):
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+    @app.get("/")
+    async def serve_frontend():
+        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
