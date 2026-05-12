@@ -38,7 +38,10 @@ if os.path.exists(FRONTEND_DIR):
 
 # Telegram bot'u arka planda başlat
 def _start_telegram():
+    import asyncio
     try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         from telegram_whatsapp_bot.telegram_bot import run_telegram_bot
         run_telegram_bot()
     except Exception as e:
