@@ -278,7 +278,7 @@ def _agent_chat_http(message: str, user_id: int) -> tuple[bool, str]:
         except Exception:
             logger.exception("agent.request_failed")
 
-    return False, "Destek talebiniz alindi. En kisa surede geri donus yapilacaktir."
+    return False, "Lutfen biraz sonra tekrar deneyin."
 
 
 def _create_ticket_from_session(customer_id: int, telegram_user_id: int, sess: UserSession) -> tuple[bool, str]:
