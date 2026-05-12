@@ -1,8 +1,8 @@
 Nexus: Yapay Zeka Destekli Akıllı Kooperatif Ekosistemi
 
-  Nexus, geleneksel kooperatifçilik modellerini 21. yüzyılın teknolojileriyle (AI, ML ve Bot Otomasyonu) birleştiren
-  uçtan uca bir yönetim ve operasyon platformudur. Küçük üreticilerin ve kooperatiflerin, dev e-ticaret platformlarıyla
-  rekabet edebilecek analitik güce ve operasyonel hıza ulaşmasını sağlar.
+  Nexus, geleneksel kooperatifçilik modellerini günümüz teknolojileriyle harmanlayan uçtan uca bir yönetim ve
+  operasyon platformudur. Küçük üreticilerin ve kooperatiflerin, dev e-ticaret platformlarıyla rekabet
+  edebilecek analitik güce ve operasyonel hıza ulaşmasını sağlar.
 
   ---
 
