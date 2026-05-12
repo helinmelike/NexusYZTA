@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from database.models.order import Order
 from repositories.base_repository import BaseRepository
+from datetime import datetime
 
 
 class OrderRepository(BaseRepository[Order]):
@@ -22,3 +23,10 @@ class OrderRepository(BaseRepository[Order]):
             self.db.commit()
             self.db.refresh(order)
         return order
+    
+    def get_orders_after(self, cutoff: datetime) -> list[Order]:
+        return (
+            self.db.query(Order)
+            .filter(Order.created_at >= cutoff)
+            .all()
+        )

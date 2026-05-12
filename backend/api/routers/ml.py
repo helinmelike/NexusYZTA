@@ -45,3 +45,21 @@ def submit_feedback(
         strategy=payload.strategy,
         final_price=payload.final_price,
     )
+
+@router.get("/top-products")
+def top_products(
+    top_n: int = 5,
+    days_back: int = 90,
+    svc: MLService = Depends(get_ml_service),
+):
+    """Son N günün verisine göre en çok satılması beklenen ürünler."""
+    return svc.get_top_products(top_n, days_back)
+
+
+@router.get("/stock-alerts")
+def stock_alerts(
+    top_n: int = 5,
+    svc: MLService = Depends(get_ml_service),
+):
+    """Stok riski olan ürünler için yönetici uyarısı."""
+    return svc.check_stock_alerts(top_n)

@@ -1,18 +1,34 @@
+import os
+import sys
 from logging.config import fileConfig
+from pathlib import Path
 
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
 
-import sys
-from pathlib import Path
-
-sys.path.append(str(Path(__file__).resolve().parents[2]))
+# Modeller `database.*` ile import ediliyor; `backend.database.*` ile aynı dosyayı
+# ikinci kez yüklemek aynı tabloyu iki kez tanımlar (InvalidRequestError).
+_backend_dir = Path(__file__).resolve().parents[1]
+if str(_backend_dir) not in sys.path:
+    sys.path.insert(0, str(_backend_dir))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Öncelik: .env içindeki DATABASE_URL (Supabase vb.). Yoksa mutlak SQLite yolu —
+# alembic.ini'deki sqlite:///backend/... cwd'ye göre yanlış dizin oluşturur.
+load_dotenv(_backend_dir / ".env")
+_db_url = os.getenv("DATABASE_URL")
+if _db_url:
+    config.set_main_option("sqlalchemy.url", _db_url.replace("%", "%%"))
+else:
+    _sqlite_file = (_backend_dir / "database" / "cooperative.db").resolve()
+    _sqlite_file.parent.mkdir(parents=True, exist_ok=True)
+    config.set_main_option("sqlalchemy.url", "sqlite:///" + _sqlite_file.as_posix().replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -21,23 +37,10 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-from backend.database.base import Base
+from database.base import Base
+import database.models  # noqa: F401 — tüm ORM modellerini Base.metadata'ya kaydeder
+
 target_metadata = Base.metadata
-
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
-from backend.database.models.customer import Customer
-from backend.database.models.order import Order
-from backend.database.models.product import Product
-from backend.database.models.order_item import OrderItem
-from backend.database.models.inventory_movement import InventoryMovement
-from backend.database.models.support_ticket import SupportTicket
-
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
