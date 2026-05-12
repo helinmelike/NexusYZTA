@@ -128,7 +128,6 @@ class MLService:
         """Son N günün satışına göre en çok satılması beklenen ürünleri döndür."""
         cutoff = datetime.utcnow() - timedelta(days=days_back)
         orders = self._repo.get_orders_after(cutoff)
-
         product_sales: dict[int, list] = defaultdict(list)
         for order in orders:
             for item in getattr(order, "items", []):
@@ -143,6 +142,7 @@ class MLService:
             trend      = self._calc_trend(sales)
             quantities = [s["quantity"] for s in sales]
             forecast   = self._forecaster.forecast(quantities, days=7)
+            product = self._product_repo.get_by_id(product_id)
             prediction = (
             forecast["data"]["total_predicted_demand"]
             if forecast["success"]
@@ -159,6 +159,7 @@ class MLService:
                 "score":                  round(
                     velocity * 0.4 + (1.0 if trend == "up" else 0.0) * 0.4, 2
                 ),
+                "product_name": product.name if product else None,
             })
 
         top = sorted(scored, key=lambda x: x["score"], reverse=True)[:top_n]
@@ -183,7 +184,7 @@ class MLService:
 
         if alerts:
             from notifications.email_service import EmailService
-            EmailService().send_stock_alert(alerts)
+            #EmailService().send_stock_alert(alerts)
 
         return {"success": True, "alerts": alerts, "count": len(alerts)}
 
@@ -208,7 +209,10 @@ class MLService:
     def _calc_stock_risk(self, product_id: int, predicted_demand: float) -> str:
         if not self._product_repo:
             return "unknown"
-        product = self._product_repo.get_by_id(product_id)
+        products = {
+            p.id: p for p in self._product_repo.get_all()
+        }
+        product = products.get(product_id)
         if not product:
             return "unknown"
         ratio = predicted_demand / max(product.stock_quantity, 1)

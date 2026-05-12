@@ -22,9 +22,14 @@ def get_cargo_service():
 def get_product_repository(db: Session = Depends(get_db)) -> ProductRepository:
     return ProductRepository(db)
 
+
 def get_ml_service(
     order_repo: OrderRepository = Depends(get_order_repository),
     product_repo: ProductRepository = Depends(get_product_repository),
-) -> MLService:
+):
     from services.ml.ml_service import MLService
-    return MLService(repo=order_repo, product_repo=product_repo)
+
+    return MLService(
+        repo=order_repo,
+        product_repo=product_repo
+    )

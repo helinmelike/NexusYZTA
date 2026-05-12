@@ -3,19 +3,67 @@ from fastapi import APIRouter, Depends, Query
 from core.deps import get_ml_service
 from schemas.ml import PriceFeedbackRequest
 from services.ml.ml_service import MLService
-
+from functools import lru_cache
+from typing import Any, Dict
+from collections import defaultdict  
 router = APIRouter()
 
 
 @router.get("/forecast/{product_id}")
 def forecast_demand(
     product_id: int,
-    days: int = Query(default=7, ge=1, le=90),
+    days: int = 7,
     ml_service: MLService = Depends(get_ml_service),
 ):
-    """Ürün bazında talep tahmini endpoint'i."""
-    return ml_service.forecast_demand(product_id=product_id, days=days)
+    if product_id <= 0:
+        return {
+            "success": False,
+            "message": "Geçersiz product_id.",
+            "data": None
+        }
 
+    # cache (opsiyonel - MLService içine taşınmalı aslında)
+    cache_key = f"{product_id}:{days}"
+
+    if hasattr(ml_service, "_forecast_cache"):
+        if cache_key in ml_service._forecast_cache:
+            return ml_service._forecast_cache[cache_key]
+
+    orders = ml_service._repo.get_all()
+
+    aggregated_by_order = defaultdict(int)
+
+    for order in orders:
+        for item in getattr(order, "items", []):
+            if item.product_id == product_id:
+                aggregated_by_order[int(order.id)] += int(item.quantity or 0)
+
+    historical_quantities = [
+        qty for _, qty in sorted(aggregated_by_order.items())
+    ]
+
+    forecast_result = ml_service._forecaster.forecast(
+        historical_quantities,
+        days
+    )
+
+    if not forecast_result["success"]:
+        return forecast_result
+
+    data = forecast_result["data"]
+    data["product_id"] = product_id
+    data["historical_points"] = len(historical_quantities)
+
+    result = {
+        "success": True,
+        "message": "Talep tahmini başarıyla oluşturuldu.",
+        "data": data
+    }
+
+    if hasattr(ml_service, "_forecast_cache"):
+        ml_service._forecast_cache[cache_key] = result
+
+    return result
 
 @router.get("/price-suggest/{product_id}")
 def suggest_price(
