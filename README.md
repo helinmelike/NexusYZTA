@@ -17,21 +17,27 @@ Scikit-learn tabanlı ML modelleri
 
 ## ✨ Temel Özellikler
 
-1. Otonom AI Ajanı (LangGraph & LLM)
+### Otonom AI Ajanı (LangGraph & LLM)
 Sistemin kalbinde yer alan AI ajanı, statik menülerin ötesine geçer:
 Doğal Dil Anlama: Kullanıcıların karmaşık isteklerini (örn: "Hangi ürünün stoğu bitiyor?") anlar.
 Fonksiyonel Entegrasyon: Veritabanına doğrudan erişerek sipariş oluşturabilir veya stok güncelleyebilir.
 Akıllı Yönlendirme: Gelen mesajın analiz mi yoksa basit bir komut mu gerektirdiğine karar verir.
 
-
-2. Tahminlemeli Analitik (ML Katmanı)
+### Tahminlemeli Analitik (ML Katmanı)
 Talep Tahminleme: Geçmiş satış trendlerini analiz ederek gereken stok miktarını hesaplar.
 Fiyat Danışmanı: Stok maliyeti ve ürün tazeliğine göre dinamik fiyat önerileri sunar.
 
-
-3. Çok Fonksiyonlu Telegram & WhatsApp Botu
+### Çok Fonksiyonlu Telegram & WhatsApp Botu
 Müşteri Arayüzü: Ürün listeleme, sepet yönetimi ve canlı kargo takibi.
 Yönetici/Personel Arayüzü: Mobil stok girişi, anlık satış raporları ve AI asistan ile konuşma.
+
+## 🎙️ Sesli Komut ve Sipariş Yönetimi
+STT (Speech-to-Text) Entegrasyonu: Kullanıcı deneyimini artırmak amacıyla Web Speech API kullanılmıştır. 
+Bu sayede kullanıcılar, metin yazmak yerine sesli komutlar vererek sistemle doğal bir şekilde etkileşime girebilirler.
+
+Dinamik Sipariş Yönlendirmesi: Telegram botu üzerinden verilen siparişler, kullanıcıyı doğrudan güvenli bir sipariş verme linkine yönlendirerek işlemin web tabanlı arayüz üzerinden hızlıca tamamlanmasını sağlar.
+
+
 
 ## 🛠 Teknoloji Yığını
 Backend: Python 3.10+, FastAPI
@@ -86,11 +92,4 @@ uvicorn main:app --reload
 Bu proje Railway üzerinde aktif olarak çalışmaktadır.
 Otomatik Süreç: API ve Bot, Procfile sayesinde aynı anda çalışır.
 CI/CD: Ana şubeye yapılan her push otomatik olarak canlıya yansır.
-```
-
-## 🔮 Gelecek Vizyonu
-```text
-📸 Görüntü İşleme: Fotoğraf ile otomatik stok girişi.
-⛓ Blockchain: Şeffaf tedarik zinciri takibi.
-💳 Ödeme Entegrasyonu: Bot üzerinden ödeme alma.
 ```
