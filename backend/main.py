@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import cargo, orders, customers, agent, products
+from api.routers.tickets import router as tickets_router
 
 app = FastAPI(title="Kooperatif Yönetim Sistemi")
 
@@ -19,3 +20,4 @@ app.include_router(orders.router,    prefix="/orders",    tags=["orders"])
 app.include_router(customers.router, prefix="/customers", tags=["customers"])
 app.include_router(products.router,  prefix="/products",  tags=["products"])
 app.include_router(agent.router,     prefix="/agent",     tags=["agent"])
+app.include_router(tickets_router,   prefix="/tickets",   tags=["tickets"])
