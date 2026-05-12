@@ -1601,7 +1601,9 @@
     </div>
 
     <script>
-      const API = "http://127.0.0.1:8000";
+      const API = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+        ? "http://127.0.0.1:8000"
+        : window.location.origin;
       const STATUS_MAP = {
         pending: { label: "Bekliyor", badge: "badge-yellow", emoji: "⏳" },
         preparing: { label: "Hazırlanıyor", badge: "badge-blue", emoji: "⚙️" },
@@ -2541,15 +2543,16 @@
       }
 
       function startSTT() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || window.msSpeechRecognition;
         if (!SpeechRecognition) {
           setSttHint("⚠️ Tarayıcınız sesli girişi desteklemiyor (Chrome önerilir)");
           return;
         }
         _sttRecognition = new SpeechRecognition();
         _sttRecognition.lang = "tr-TR";
-        _sttRecognition.continuous = false;
+        _sttRecognition.continuous = true;
         _sttRecognition.interimResults = true;
+        _sttRecognition.maxAlternatives = 1;
 
         const btn = document.getElementById("stt-btn");
         const input = document.getElementById("chat-input");
@@ -2565,12 +2568,12 @@
         _sttRecognition.onresult = (e) => {
           let interim = "";
           let final = "";
-          for (let i = e.resultIndex; i < e.results.length; i++) {
+          for (let i = 0; i < e.results.length; i++) {
             const t = e.results[i][0].transcript;
             if (e.results[i].isFinal) final += t;
             else interim += t;
           }
-          input.value = originalText + (final || interim);
+          input.value = (final || interim).trim();
         };
 
         _sttRecognition.onend = () => {
