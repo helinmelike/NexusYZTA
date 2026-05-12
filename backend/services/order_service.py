@@ -1,8 +1,11 @@
 """Order service layer for database-backed order operations."""
 
 from contextlib import contextmanager
+from datetime import datetime, UTC
+import logging
 from typing import Any
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session, joinedload
 
 from database.db import SessionLocal
@@ -10,6 +13,33 @@ from database.models.customer import Customer
 from database.models.order import Order
 from database.models.order_item import OrderItem
 from database.models.product import Product
+
+logger = logging.getLogger(__name__)
+
+
+def _ensure_order_schema_postgres(db: Session) -> None:
+    """Ensure required order columns exist in PostgreSQL/Supabase."""
+    db.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number VARCHAR"))
+    db.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ"))
+    db.execute(
+        text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_orders_order_number ON orders (order_number)"
+        )
+    )
+    db.execute(
+        text(
+            "UPDATE orders "
+            "SET order_number = 'ORD-' || LPAD(id::text, 6, '0') "
+            "WHERE order_number IS NULL"
+        )
+    )
+    db.execute(
+        text(
+            "UPDATE orders "
+            "SET created_at = NOW() "
+            "WHERE created_at IS NULL"
+        )
+    )
 
 
 @contextmanager
@@ -29,10 +59,12 @@ def _session_scope():
 def _serialize_order(order: Order, include_items: bool = False) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "id": order.id,
+        "order_number": order.order_number,
         "customer_id": order.customer_id,
         "customer_name": order.customer.full_name if order.customer else None,
         "status": order.status,
         "total_amount": float(order.total_amount or 0),
+        "created_at": order.created_at.isoformat() if order.created_at else None,
     }
     if include_items:
         payload["items"] = [
@@ -56,7 +88,9 @@ def create_order(customer_name: str, product_name: str) -> dict[str, Any]:
     Creates a simple order with quantity=1 for the given customer and product.
     If customer does not exist, it will be created with a placeholder phone.
     """
-    with _session_scope() as db:
+    db = SessionLocal()
+    try:
+        _ensure_order_schema_postgres(db)
         customer = db.query(Customer).filter(Customer.full_name == customer_name).first()
         if not customer:
             customer = Customer(
@@ -74,21 +108,50 @@ def create_order(customer_name: str, product_name: str) -> dict[str, Any]:
         if (product.stock_quantity or 0) < 1:
             return {"success": False, "message": "Insufficient stock", "data": None}
 
-        order = Order(customer_id=customer.id, status="pending", total_amount=float(product.price))
+        order = Order(
+            customer_id=customer.id,
+            status="pending",
+            total_amount=float(product.price),
+            created_at=datetime.now(UTC),
+        )
+        logger.info("[ORDER_DEBUG] Order object created")
         db.add(order)
+        logger.info("[ORDER_DEBUG] Order added to session")
         db.flush()
+
+        order.order_number = f"ORD-{order.id:06d}"
 
         item = OrderItem(order_id=order.id, product_id=product.id, quantity=1, unit_price=float(product.price))
         db.add(item)
         product.stock_quantity = int(product.stock_quantity or 0) - 1
 
+        db.commit()
+        logger.info("[ORDER_DEBUG] Commit success")
         db.refresh(order)
-        return {"success": True, "message": "Order created", "data": {"order_id": order.id}}
+        logger.info("[ORDER_DEBUG] Order ID = %s", order.id)
+
+        return {
+            "success": True,
+            "message": "Order created",
+            "data": {
+                "order_id": order.id,
+                "order_number": order.order_number,
+                "customer_id": order.customer_id,
+                "created_at": order.created_at.isoformat() if order.created_at else None,
+            },
+        }
+    except Exception as exc:
+        db.rollback()
+        logger.exception("[ORDER_DEBUG] Order create failed before commit: %s", exc)
+        return {"success": False, "message": "Order persistence failed", "data": None}
+    finally:
+        db.close()
 
 
 def get_order_by_id(order_id: int) -> dict[str, Any]:
     """Return basic order data by order id."""
     with _session_scope() as db:
+        _ensure_order_schema_postgres(db)
         order = (
             db.query(Order)
             .options(joinedload(Order.customer))
@@ -103,6 +166,7 @@ def get_order_by_id(order_id: int) -> dict[str, Any]:
 def get_customer_orders(customer_id: int) -> dict[str, Any]:
     """List all orders of a given customer."""
     with _session_scope() as db:
+        _ensure_order_schema_postgres(db)
         orders = (
             db.query(Order)
             .options(joinedload(Order.customer))
@@ -117,6 +181,7 @@ def get_customer_orders(customer_id: int) -> dict[str, Any]:
 def cancel_order(order_id: int) -> dict[str, Any]:
     """Cancel order if not already shipped."""
     with _session_scope() as db:
+        _ensure_order_schema_postgres(db)
         order = (
             db.query(Order)
             .options(joinedload(Order.items).joinedload(OrderItem.product))
@@ -141,6 +206,7 @@ def list_recent_orders(limit: int = 10) -> dict[str, Any]:
     """List most recent orders."""
     safe_limit = max(1, min(int(limit), 100))
     with _session_scope() as db:
+        _ensure_order_schema_postgres(db)
         orders = (
             db.query(Order)
             .options(joinedload(Order.customer))
@@ -155,6 +221,7 @@ def list_recent_orders(limit: int = 10) -> dict[str, Any]:
 def get_order_detail(order_id: int) -> dict[str, Any]:
     """Return detailed order payload with nested items."""
     with _session_scope() as db:
+        _ensure_order_schema_postgres(db)
         order = (
             db.query(Order)
             .options(

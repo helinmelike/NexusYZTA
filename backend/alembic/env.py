@@ -18,6 +18,8 @@ if str(_backend_dir) not in sys.path:
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+from backend.core.config import settings
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # Öncelik: .env içindeki DATABASE_URL (Supabase vb.). Yoksa mutlak SQLite yolu —
 # alembic.ini'deki sqlite:///backend/... cwd'ye göre yanlış dizin oluşturur.

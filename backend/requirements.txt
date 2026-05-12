@@ -18,3 +18,4 @@ requests
 alembic==1.18.4
 scikit-learn
 numpy
+APScheduler==3.10.4
