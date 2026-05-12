@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 from database.base import Base
 
@@ -14,8 +15,9 @@ class Order(Base):
 
     status = Column(String, default="pending")
 
-    total_amount = Column(Float, default=0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=True)
+    total_amount = Column(Float, default=0) 
+    
+    created_at   = Column(DateTime, default=datetime.utcnow)
 
     customer = relationship("Customer", back_populates="orders")
 

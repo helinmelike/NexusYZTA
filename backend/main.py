@@ -3,7 +3,7 @@ print("DATABASE_URL:", settings.database_url)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import cargo, orders, customers, agent, products
+from api.routers import cargo, orders, customers, agent, products, ml
 from api.routers.tickets import router as tickets_router
 
 app = FastAPI(title="Kooperatif Yönetim Sistemi")
