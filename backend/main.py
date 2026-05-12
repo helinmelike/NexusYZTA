@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
-import threading
 
 from api.routers import cargo, orders, customers, agent, products, ml
 from api.routers.tickets import router as tickets_router
@@ -36,19 +35,12 @@ if os.path.exists(FRONTEND_DIR):
     async def serve_frontend():
         return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
-# Telegram bot'u arka planda başlat
-def _start_telegram():
-    import asyncio
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        from telegram_whatsapp_bot.telegram_bot import run_telegram_bot
-        run_telegram_bot()
-    except Exception as e:
-        print(f"Telegram bot başlatılamadı: {e}")
-
 @app.on_event("startup")
 async def startup_event():
-    t = threading.Thread(target=_start_telegram, daemon=True)
-    t.start()
-    print("Telegram bot thread başlatıldı.")
+    import asyncio
+    try:
+        from telegram_whatsapp_bot.telegram_bot import run_telegram_bot_async
+        asyncio.create_task(run_telegram_bot_async())
+        print("Telegram bot task başlatıldı.")
+    except Exception as e:
+        print(f"Telegram bot başlatılamadı: {e}")
