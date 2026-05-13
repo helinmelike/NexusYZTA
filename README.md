@@ -62,7 +62,7 @@ Geçmiş sipariş verilerine göre haftalık talep tahmini üretir. Hangi ürün
 **Gereksinimler:** Python 3.10+, Supabase hesabı, OpenAI API anahtarı
 
 ```bash
-git clone https://github.com/kullanici-adi/nexus-kooperatif.git
+git clone https://github.com/helinmelike/NexusYZTA.git
 cd nexus-kooperatif
 
 python -m venv venv && source venv/bin/activate
@@ -163,13 +163,16 @@ Tüm endpoint'ler `http://localhost:8000/docs` üzerinden interaktif olarak test
 
 ---
 
-## Katkı
+## Geliştirici Ekibi
 
-Pull request'ler açık. Büyük değişiklikler için önce bir issue açın.
+Bu proje aşağıdaki ekip tarafından geliştirilmiştir:
 
----
-## Proje Geliştiricileri
-Proje Helin Melike Çal,Özlem Kılıç,İlkay Cangüder,Tolga Duy tarafından geliştirilmiştir.
+| | |
+|--|--|
+| **Helin Melike Çal** | [github.com/helinmelike](https://github.com/helinmelike) |
+| **Özlem Kılıç** | |
+| **İlkay Cangüder** | |
+| **Tolga Duy** | |
 
 ---
 
