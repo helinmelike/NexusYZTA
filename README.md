@@ -172,9 +172,9 @@ Bu proje aşağıdaki ekip tarafından geliştirilmiştir:
 | | |
 |--|--|
 | **Helin Melike Çal** | [github.com/helinmelike](https://github.com/helinmelike) |
-| **Özlem Kılıç** | |
-| **İlkay Cangüder** | |
-| **Tolga Duy** | |
+| **Özlem Kılıç** | [github.com/ozlemkilic101](https://github.com/ozlemkilic101) |
+| **İlkay Cangüder** | [github.com/ilkaycanguder](https://github.com/ilkaycanguder) |
+| **Tolga Duy** | [github.com/tolgadydev](https://github.com/tolgadydev) |
 
 ---
 
