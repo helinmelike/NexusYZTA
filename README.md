@@ -168,6 +168,10 @@ Tüm endpoint'ler `http://localhost:8000/docs` üzerinden interaktif olarak test
 Pull request'ler açık. Büyük değişiklikler için önce bir issue açın.
 
 ---
+## Proje Geliştiricileri
+Proje Helin Melike Çal,Özlem Kılıç,İlkay Cangüder,Tolga Duy tarafından geliştirilmiştir.
+
+---
 
 ## Lisans
 
