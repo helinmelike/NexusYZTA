@@ -1,122 +1,167 @@
-# 🚀 Nexus: Yapay Zeka Destekli Akıllı Kooperatif Ekosistemi
-Nexus, geleneksel kooperatifçilik modellerini günümüz teknolojileriyle harmanlayan uçtan uca bir yönetim ve operasyon platformudur. Küçük üreticilerin ve kooperatiflerin, dev e-ticaret platformlarıyla rekabet edebilecek analitik güce ve operasyonel hıza ulaşmasını sağlar.
+# 🌿 Nexus — Kooperatif Yönetim Sistemi
 
+> Telegram'dan sipariş al, stoku yönet, kargonu takip et, marketplace'i senkronize et.  
+> Hepsi tek sistemden. Hepsi Türkçe. Hepsi AI destekli.
 
+**Production'da çalışıyor** · FastAPI + Supabase · GPT-4o-mini + LangGraph · Railway'de deploy · Trendyol & Hepsiburada entegrasyonu
 
-## 📝 Genel Bakış
-Nexus, sadece bir stok takip programı değildir. Veriyi işleyen, geleceği tahmin eden ve kullanıcıyla doğal dilde etkileşime giren entegre bir ekosistemdir.
+---
 
+## Neden Nexus?
 
+Kooperatifler genellikle birbirinden kopuk araçlarla çalışır: siparişler WhatsApp'tan, stok Excel'den, kargo kargo firmasının sitesinden takip edilir. Nexus bunları tek bir platforma toplar.
 
-## Sistem Bileşenleri:
+Müşteri Telegram'dan "3 kilo tarhana istiyorum" yazar — sistem ürünü bulur, stoku kontrol eder, onay ister, siparişi oluşturur. Satıcı panelden kargoya verir, müşteri otomatik bilgilendirilir. Hiçbir adımda manuel giriş gerekmez.
 
-FastAPI tabanlı güçlü bir backend
-LangGraph ile güçlendirilmiş bir AI ajanı
-Scikit-learn tabanlı ML modelleri
-Çok kanallı bir Telegram arayüzü
+---
 
-## ✨ Temel Özellikler
+## Ne Yapabilir?
 
-### :brain: Otonom AI Ajanı (LangGraph & LLM)
-```text
-Sistemin kalbinde yer alan AI ajanı, statik menülerin ötesine geçer:
-   - Doğal Dil Anlama: Kullanıcıların "Hangi ürünün stoğu bitiyor?" veya "Geçen haftanın en çok satanlarını raporla"
-     gibi karmaşık isteklerini anlar.
-   - Fonksiyonel Entegrasyon (Tool-Calling): Ajan, veritabanına doğrudan erişerek sipariş oluşturabilir, stok
-     güncelleyebilir veya kargo sorgusu yapabilir.
-   - Akıllı Yönlendirme: Gelen mesajın basit bir komut mu yoksa derinlemesine bir analiz mi gerektirdiğine karar vererek
-     kullanıcıyı asiste eder.
+### 💬 AI Destekli Sipariş Akışı
+Müşteriler doğal Türkçe ile yazabilir. Sistem hem kural tabanlı intent parser hem de GPT-4o-mini agent kullanır — basit komutlar milisaniyede yanıtlanır, karmaşık sorular LLM'e devredilir.
+
+```
+"ürünleri listele"                    → anlık ürün listesi
+"3 kilo tarhana istiyorum"            → ürün bulur, onay ister, sipariş açar
+"kargom nerede ORD-000042"            → gerçek zamanlı kargo durumu
+"sipariş 15 iptal et"                 → stokları iade ederek iptal eder
+"zeytinyağının fiyatını 180 tl yap"  → fiyatı günceller
 ```
 
+### 📦 Operasyon Paneli
+Web panelinden tüm operasyonu yönetin: sipariş durumlarını güncelleyin, kritik stok uyarılarını görün, kargoya verilecekleri listeleyin, müşteri geçmişine bakın.
 
-### :bar_chart: Tahminlemeli Analitik (ML Katmanı)
-```text
+### 🛒 Marketplace Entegrasyonu
+Trendyol ve Hepsiburada siparişlerini tek tıkla çekip sisteme aktarın. Stok çakışmaları otomatik uyarılır, kanal bazlı satış dağılımı raporlanır.
 
-Veri odaklı karar verme mekanizmaları:
-   - Talep Tahminleme (Demand Forecasting): Geçmiş satış trendlerini analiz ederek, hangi dönemde hangi üründen ne kadar
-     stok bulundurulması gerektiğini hesaplar.
-   - Fiyat Danışmanı (Price Advisor): Stok maliyeti, talep yoğunluğu ve ürün tazeliği gibi verileri kullanarak karlılığı
-     maksimize edecek dinamik fiyat önerileri sunar.
+### 🤖 ML Tahmin Motoru
+Geçmiş sipariş verilerine göre haftalık talep tahmini üretir. Hangi ürünü ne zaman sipariş etmeniz gerektiğini önceden görün, stok krizini yaşamadan önleyin.
+
+### 📊 Raporlama
+Ürünler, siparişler, müşteriler ve envanter hareketlerini tek tıkla Excel'e aktarın.
+
+---
+
+## Ekran Görüntüleri
+
+| Dashboard | AI Asistan | Stok Yönetimi |
+|-----------|-----------|---------------|
+| ![Dashboard](assets/dashboard.png) | ![AI Asistan](assets/ai-asistan.png) | ![Stok Yönetimi](assets/stok-yonetimi.png) |
+
+---
+
+## Hızlı Başlangıç
+
+**Gereksinimler:** Python 3.10+, Supabase hesabı, OpenAI API anahtarı
+
+```bash
+git clone https://github.com/kullanici-adi/nexus-kooperatif.git
+cd nexus-kooperatif
+
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env
+# .env dosyasını düzenle
+
+alembic upgrade head
+uvicorn main:app --reload
 ```
 
-### 🤖 Çok Fonksiyonlu Telegram Botu
-```text
-Farklı kullanıcı tipleri için özelleşmiş tek bir iletişim kanalı:
-   - Müşteri Arayüzü: Ürün listeleme, sepet yönetimi, kolay sipariş ve canlı kargo takibi.
-   - Yönetici/Personel Arayüzü: Mobil cihazdan stok girişi, anlık satış raporları, destek taleplerini (tickets) yönetme
-     ve AI asistan ile doğrudan konuşma.
+`.env` dosyası:
+```env
+# Supabase → Settings > Database > Connection String (Transaction pooler önerilir)
+DATABASE_URL=postgresql://postgres.[proje-id]:[sifre]@aws-0-[bolge].pooler.supabase.com:6543/postgres
+
+OPENAI_API_KEY=sk-...
+TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN   # opsiyonel
 ```
 
+Sunucu ayağa kalktıktan sonra:
+- **API Docs** → `http://localhost:8000/docs`
+- **Web Paneli** → `index.html` dosyasını tarayıcıda açın
+- **Telegram Bot** → `python telegram_bot.py`
 
-### 🎙️ Sesli Komut ve Sipariş Yönetimi
-```text
-STT (Speech-to-Text) Entegrasyonu: Kullanıcı deneyimini artırmak amacıyla Web Speech API kullanılmıştır. 
-Bu sayede kullanıcılar, metin yazmak yerine sesli komutlar vererek sistemle doğal bir şekilde etkileşime girebilirler.
+---
 
-Dinamik Sipariş Yönlendirmesi: Telegram botu üzerinden verilen siparişler, kullanıcıyı doğrudan güvenli bir sipariş verme linkine yönlendirerek işlemin web tabanlı arayüz üzerinden hızlıca tamamlanmasını sağlar.
+## Deploy (Railway)
+
+Proje Railway üzerinde production'da çalışmaktadır. Kendi ortamınıza deploy etmek için:
+
+1. [Railway](https://railway.app)'de yeni bir proje oluşturun
+2. Bu repoyu GitHub'dan bağlayın
+3. Environment variable'ları Railway dashboard'dan girin (`DATABASE_URL`, `OPENAI_API_KEY`, `TELEGRAM_BOT_TOKEN`)
+4. Start command olarak şunu girin:
+   ```
+   uvicorn main:app --host 0.0.0.0 --port $PORT
+   ```
+5. Railway otomatik olarak build edip deploy eder
+
+Veritabanı olarak [Supabase](https://supabase.com) kullanılmaktadır. Supabase projenizi oluşturduktan sonra `DATABASE_URL`'i Transaction Pooler bağlantı stringiyle doldurun, ardından migration'ları çalıştırın:
+```bash
+alembic upgrade head
 ```
 
-### :computer: 4. Modern Yönetici Paneli (Dashboard)
-```text
-Kooperatif yöneticileri için merkezi kontrol merkezi:
-   - Veri Görselleştirme: Satışların, stokların ve müşteri büyümesinin grafiksel analizi.
-   - AI Chat Interface: Dashboard üzerinden AI ajanı ile yazışarak hızlı aksiyon alma.
+---
+
+## Mimari
+
+Sistem üç katmandan oluşur: bir FastAPI backend, bir web yönetim paneli ve bir Telegram botu. AI tarafında iki aşamalı bir yönlendirme çalışır — sık kullanılan komutlar kural tabanlı intent parser tarafından milisaniyede karşılanır, parser'ın çözemediği mesajlar LangGraph üzerindeki GPT-4o-mini agent'a iletilir. Agent, 18 adet tool ile ürün, sipariş, müşteri ve kargo servislerine doğrudan erişir.
+
+```
+Telegram / Web Paneli
+        │
+   FastAPI Backend
+   ├── /orders  /products  /cargo
+   ├── /customers  /tickets  /ml
+   └── /agent
+        │
+   ┌────┴──────────────────────┐
+   │  Intent Parser            │  ← hızlı, kural tabanlı
+   │  LangGraph Agent          │  ← GPT-4o-mini + 18 tool
+   └───────────────────────────┘
+        │
+   PostgreSQL + ML Layer
 ```
 
-## 🛠 Teknoloji Yığını
-- Backend: Python 3.10+, FastAPI (Asenkron API yapısı)
-- AI/LLM: LangChain, LangGraph, OpenAI GPT-4o-mini
-- Veri & ML: Scikit-learn, Pandas, NumPy
-- Veritabanı: PostgreSQL, SQLAlchemy (ORM), Alembic (Migrations)
-- Bot: python-telegram-bot (Long-polling & Webhook desteği)
-- Frontend: HTML5, CSS3 (Vanilla), JavaScript (ES6+)
-- Deployment: Railway (Web + Worker mimarisi)
+---
 
+## API
 
-## 📂 Proje Yapısı
-```text
-├── backend/
-│   ├── ai_agent/        # LangGraph ajan mimarisi
-│   ├── api/             # FastAPI router yapıları
-│   ├── database/        # Veri modelleri
-│   ├── services/        # İş mantığı ve ML modelleri
-│   └── main.py          # Uygulama giriş noktası
-├── frontend/            # Dashboard dosyaları
-├── railway.toml         # Deployment ayarları
-└── requirements.txt     # Bağımlılıklar
-```
+Tüm endpoint'ler `http://localhost:8000/docs` üzerinden interaktif olarak test edilebilir.
 
-## ⚙️ Kurulum ve Yerel Çalıştırma
-## 1. Hazırlık
-```text
-- Python 3.10+ yüklü olduğundan emin olun.
-- Bir PostgreSQL veritabanı oluşturun.
-- OpenAI API Key ve Telegram Bot Token edinin.
-```
+| Endpoint | Açıklama |
+|----------|----------|
+| `POST /agent/chat` | AI asistanla konuş |
+| `GET /orders` | Sipariş listesi |
+| `POST /orders` | Yeni sipariş |
+| `GET /cargo/{tracking}` | Kargo takibi |
+| `GET /ml/forecast/{product_id}` | Talep tahmini |
+| `GET /ml/price-suggest/{product_id}` | Fiyat önerisi |
+| `POST /marketplace/sync-trendyol` | Trendyol senkronizasyonu |
 
-## 2. Kurulum Adımları
-```text
-# Depoyu klonlayın
-    git clone https://github.com/helinmelike/hackathon.git
-    cd hackathon
-# Bağımlılıkları yükleyin
-   pip install -r backend/requirements.txt
-# .env dosyasını oluşturun ve doldurun
-# DATABASE_URL, OPENAI_API_KEY, TELEGRAM_BOT_TOKEN
-```
+---
 
-## 3. Çalıştırma
-```text
-# Veritabanını güncelleyin
-  cd backend
-  alembic upgrade head
-# Uygulamayı başlatın
-  uvicorn main:app --reload
-```
+## Teknoloji Yığını
 
-## 🚀 Canlıya Alma (Deployment)
-```text
-Bu proje Railway üzerinde aktif olarak çalışmaktadır.
-Otomatik Süreç: API ve Bot, Procfile sayesinde aynı anda çalışır.
-CI/CD: Ana şubeye yapılan her push otomatik olarak canlıya yansır.
-```
+| | |
+|--|--|
+| **Backend** | FastAPI, SQLAlchemy, Alembic |
+| **Veritabanı** | Supabase (PostgreSQL) |
+| **Hosting** | Railway |
+| **AI / LLM** | LangGraph, LangChain, GPT-4o-mini |
+| **ML** | scikit-learn, NumPy, APScheduler |
+| **Bot** | python-telegram-bot 21 |
+| **Raporlama** | openpyxl |
+
+---
+
+## Katkı
+
+Pull request'ler açık. Büyük değişiklikler için önce bir issue açın.
+
+---
+
+## Lisans
+
+MIT
