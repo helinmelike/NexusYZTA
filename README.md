@@ -5,6 +5,8 @@
 
 **Production'da çalışıyor** · FastAPI + Supabase · GPT-4o-mini + LangGraph · Railway'de deploy · Trendyol & Hepsiburada entegrasyonu
 
+🔗 **Canlı Demo:** [web-production-80a70.up.railway.app](https://web-production-80a70.up.railway.app/)
+
 ---
 
 ## Neden Nexus?
