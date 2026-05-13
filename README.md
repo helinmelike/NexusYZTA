@@ -97,8 +97,8 @@ Kooperatif yöneticileri için merkezi kontrol merkezi:
 ## 2. Kurulum Adımları
 ```text
 # Depoyu klonlayın
-    git clone https://github.com/kullaniciadi/nexus-coop.git
-    cd nexus-coop
+    git clone https://github.com/helinmelike/hackathon.git
+    cd hackathon
 # Bağımlılıkları yükleyin
    pip install -r backend/requirements.txt
 # .env dosyasını oluşturun ve doldurun
